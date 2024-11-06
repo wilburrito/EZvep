@@ -1,7 +1,9 @@
-import { Row, Col } from "antd";
+import { Row, Col, Button } from "antd";
 import { withTranslation, TFunction } from "react-i18next";
 import { SvgIcon } from "../../common/SvgIcon";
 import Container from "../../common/Container";
+import { useState } from "react";
+import { Modal } from "antd";
 
 import i18n from "i18next";
 import {
@@ -27,6 +29,20 @@ interface SocialLinkProps {
 }
 
 const Footer = ({ t }: { t: TFunction }) => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  }
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+  }
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  }
+
   const handleChange = (language: string) => {
     i18n.changeLanguage(language);
   };
@@ -61,7 +77,7 @@ const Footer = ({ t }: { t: TFunction }) => {
               </a>
             </Col> */}
             <Col lg={8} md={8} sm={12} xs={12}>
-              <Large to="/">{t("Terms and Conditions")}</Large>
+              <Large as="button" onClick={showModal}>{t("Terms and Conditions")}</Large>
             </Col>
           </Row>
           {/* <Row justify="space-between">
@@ -103,6 +119,32 @@ const Footer = ({ t }: { t: TFunction }) => {
           </Row> */}
         </Container>
       </FooterSection>
+      <Modal
+        title={t("Terms and Conditions")}
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={[
+          <Button key="close" type="primary" onClick={handleOk}>
+            {t("Close")}
+          </Button>,
+        ]}
+        >
+          <div style={{ maxHeight: "400px", overflowY: "auto", paddingRight: "10px" }}>
+            <p><strong style={{ fontSize: "1.1em" }}>Payment Terms</strong><br />To begin processing your application, full payment is required upfront.</p>
+            <p><strong style={{ fontSize: "1.1em" }}>Processing Queue</strong><br />After payment is confirmed, your application will be added to our processing queue.</p>
+            <p><strong style={{ fontSize: "1.1em" }}>Estimated Timelines</strong><br />Any estimated timelines provided for completing applications are only approximations. Processing times may vary for each application.</p>
+            <p><strong style={{ fontSize: "1.1em" }}>Client Assistance</strong><br />To ensure smooth processing, clients should respond promptly to requests, such as checking emails, to help avoid delays.</p>
+            <p><strong style={{ fontSize: "1.1em" }}>Application Failure and Refund Policy</strong><br />If an application fails due to an error on our part, we will attempt to resolve it up to three times. After three unsuccessful attempts, a full refund will be provided. By making a payment, you are engaging our services. After this point, refunds are not available except in cases of application failure (as detailed above). If an application fails due to inaccurate information or other client errors, no refunds will be issued. Our services are considered complete once an appointment for RFID tag installation has been scheduled, or payment has been made for postage to your home.</p>
+            <p><strong style={{ fontSize: "1.1em" }}>RFID Tag Collection</strong><br />Clients must inform us if they prefer to collect the RFID tag in person at designated collection points or receive it by mail.</p>
+            <p><strong style={{ fontSize: "1.1em" }}>RFID Tag Installation</strong><br />- <em>Self-Installation:</em> For clients receiving the RFID tag by mail, it must be self-installed on the headlight, and photos sent to us for verification. Refunds are not issued if verification is rejected due to improper installation. Reapplying for a new tag will require a new application and a full fee of $130. We can only install headlight RFID but are dependent on availability of our specialist.</p>
+            <p><strong style={{ fontSize: "1.1em" }}>Appointment Booking</strong><br />Appointments should only be scheduled after coordinating with us via WhatsApp.</p>
+            <p><strong style={{ fontSize: "1.1em" }}>Personal Data Protection</strong><br />By using our services, you agree to the collection, storage, and use of the documents and information you provide, strictly for VEP purposes. We will delete all data within three months after successful application completion.</p>
+            <p><strong style={{ fontSize: "1.1em" }}>Information Disclaimer</strong><br />Please note that information regarding the use of an email VEP confirmation slip after October 1st is sourced from various references, including Motorist.sg and The Straits Times, and is intended as a guide. EZVEP is not responsible for any denied entries, fines, or issues that may arise. Clients should verify the latest requirements independently.</p>
+            <p><strong style={{ fontSize: "1.1em" }}>Changes to Terms and Conditions</strong><br />Our terms and conditions are subject to change. By engaging our services, clients accept any updated terms as they are introduced.</p>
+            <p>By using our services, you confirm that you have read, understood, and agree to these terms and conditions. If you have questions or need more information, please reach out to us.</p>
+          </div>
+      </Modal>
       <Extra>
         <Container border={true}>
           <Row

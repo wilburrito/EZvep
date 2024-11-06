@@ -20,7 +20,6 @@ const Home = () => {
         direction="right"
         title={IntroContent.title}
         content={IntroContent.text}
-        button={IntroContent.button}
         icon="CAR.svg"
         id="intro"
         imageDescription="Picture of our customer with their VEP RFID on their headlights"

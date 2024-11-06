@@ -92,8 +92,8 @@ const ContentBlock = ({
                             <Col key={id} span={11}>
                               <SvgIcon
                                 src={item.icon}
-                                width="60px"
-                                height="60px"
+                                width="150px"
+                                height="150px"
                               />
                               <MinTitle>{t(item.title)}</MinTitle>
                               <MinPara>{t(item.content)}</MinPara>

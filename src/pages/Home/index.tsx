@@ -24,17 +24,17 @@ const Home = () => {
         id="intro"
         imageDescription="Picture of our customer with their VEP RFID on their headlights"
       />
-      {/* <MiddleBlock
+      <MiddleBlock
         title={MiddleBlockContent.title}
         content={MiddleBlockContent.text}
         button={MiddleBlockContent.button}
-      /> */}
+      />
       <ContentBlock
         direction="left"
         title={AboutContent.title}
         content={AboutContent.text}
         section={AboutContent.section}
-        icon="THUMBSUP.svg"
+        icon="CHECK_MARK.svg"
         id="about"
       />
       {/* <ContentBlock

@@ -13,7 +13,10 @@ export const MiddleBlockSection = styled("section")`
 `;
 
 export const Content = styled("p")`
-  padding: 0.75rem 0 0.75rem;
+  padding: 1rem 0;
+  line-height: 1.6;
+  font-size: 1rem;
+  text-align: left;
 `;
 
 export const ContentWrapper = styled("div")`

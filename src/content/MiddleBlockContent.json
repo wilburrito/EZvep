@@ -1,6 +1,5 @@
 {
-    "title": "Introduce your product quickly & effectively",
-    "text": "Landy comes with multi-lingual support, all of the content is stored in the JSON files, so that you can manage the texts without having any prior knowledge in developing web applications using React.js.",
-    "button": "Contact Us!"
-  }
-  
+  "title": "What is a Vehicle Entry Permit (VEP)?",
+  "text": "<p>The Vehicle Entry Permit (VEP) is issued by the Road Transport Department under Section 66H of the (Malaysian) Road Transport Act 1987, allowing foreign vehicles to enter Malaysia. It is mandatory for all foreign-registered vehicles entering Peninsular Malaysia to be registered. <br><br>That's what we're here for!",
+  "button": "Contact Us!"
+}

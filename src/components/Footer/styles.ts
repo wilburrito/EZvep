@@ -91,7 +91,7 @@ export const FooterContainer = styled("div")`
   max-width: 510px;
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   text-align: center;
   align-items: center;
   transition: all 0.1s ease-in-out;

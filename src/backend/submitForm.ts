@@ -12,7 +12,6 @@ export const handleSubmit = async (event: React.FormEvent<HTMLFormElement>, name
         timestamp: new Date()
         });
         console.log("Document written with ID: ", docRef.id);
-        alert("Message sent successfully!");
     } catch (e) {
         console.error("Error adding document: ", e);
         alert("An error occurred. Please try again.");

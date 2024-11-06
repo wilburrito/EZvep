@@ -14,6 +14,7 @@ import {
   MinPara,
   StyledRow,
   ButtonWrapper,
+  ImageDescription,
 } from "./styles";
 
 const ContentBlock = ({
@@ -25,6 +26,7 @@ const ContentBlock = ({
   t,
   id,
   direction,
+  imageDescription,
 }: ContentBlockProps) => {
   const scrollTo = (id: string) => {
     const element = document.getElementById(id) as HTMLDivElement;
@@ -44,6 +46,7 @@ const ContentBlock = ({
         >
           <Col lg={11} md={11} sm={12} xs={24}>
             <SvgIcon src={icon} width="100%" height="100%" />
+            {imageDescription && <ImageDescription>{imageDescription}</ImageDescription>}
           </Col>
           <Col lg={11} md={11} sm={11} xs={24}>
             <ContentWrapper>

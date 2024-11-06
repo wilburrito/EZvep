@@ -9,6 +9,7 @@ import Block from "../Block";
 import Input from "../../common/Input";
 import TextArea from "../../common/TextArea";
 import { ContactContainer, FormGroup, Span, ButtonContainer } from "./styles";
+//import { handleSubmit as firebaseSubmit } from "../../backend/submitForm";
 
 const Contact = ({ title, content, id, t }: ContactProps) => {
   const { values, errors, handleChange, handleSubmit } = useForm(validate);
@@ -17,6 +18,16 @@ const Contact = ({ title, content, id, t }: ContactProps) => {
     const ErrorMessage = errors[type as keyof typeof errors];
     return <Span>{ErrorMessage}</Span>;
   };
+
+  // const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  //   try {
+  //     console.log("phone number: ", values.phoneNumber);
+  //     await firebaseSubmit(event, values.name, values.phoneNumber, values.email, values.message);
+      
+  //   } catch (e) {
+  //     console.error("Error adding document: ", e);
+  //   }
+  // }
 
   return (
     <ContactContainer id={id}>
@@ -42,21 +53,22 @@ const Contact = ({ title, content, id, t }: ContactProps) => {
               <Col span={24}>
                 <Input
                   type="text"
+                  name="phoneNumber"
+                  placeholder="98765432"
+                  value={values.phoneNumber || ""}
+                  onChange={handleChange}
+                />
+                <ValidationType type="phoneNumber" />
+              </Col>
+              <Col span={24}>
+                <Input
+                  type="text"
                   name="email"
                   placeholder="Your Email"
                   value={values.email || ""}
                   onChange={handleChange}
                 />
                 <ValidationType type="email" />
-              </Col>
-              <Col span={24}>
-                <TextArea
-                  placeholder="Your Message"
-                  value={values.message || ""}
-                  name="message"
-                  onChange={handleChange}
-                />
-                <ValidationType type="message" />
               </Col>
               <ButtonContainer>
                 <Button name="submit">{t("Submit")}</Button>

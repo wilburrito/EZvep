@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { notification } from "antd";
+import { handleSubmit as firebaseSubmit } from "../../backend/submitForm";
 
 interface IValues {
   name: string;
+  phoneNumber: string;
   email: string;
-  message: string;
 }
 
 const initialValues: IValues = {
   name: "",
+  phoneNumber: "",
   email: "",
-  message: "",
 };
 
 export const useForm = (validate: { (values: IValues): IValues }) => {
@@ -28,36 +29,19 @@ export const useForm = (validate: { (values: IValues): IValues }) => {
     const errors = validate(values);
     setFormState((prevState) => ({ ...prevState, errors }));
 
-    const url = ""; // Fill in your API URL here
-
     try {
       if (Object.values(errors).every((error) => error === "")) {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
+        await firebaseSubmit(event, values.name, values.phoneNumber, values.email);
+        event.target.reset();
+        setFormState(() => ({
+          values: { ...initialValues },
+          errors: { ...initialValues },
+        }));
+
+        notification["success"]({
+          message: "Success",
+          description: "Your message has been sent!",
         });
-
-        if (!response.ok) {
-          notification["error"]({
-            message: "Error",
-            description:
-              "There was an error sending your message, please try again later.",
-          });
-        } else {
-          event.target.reset();
-          setFormState(() => ({
-            values: { ...initialValues },
-            errors: { ...initialValues },
-          }));
-
-          notification["success"]({
-            message: "Success",
-            description: "Your message has been sent!",
-          });
-        }
       }
     } catch (error) {
       notification["error"]({

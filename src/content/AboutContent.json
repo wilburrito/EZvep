@@ -1,15 +1,15 @@
 {
-  "title": "Light, fast & responsive",
-  "text": "This template is ready to use, so you don't need to change anything at a component level, unless you want to customize the default styling.",
+  "title": "Over 200 Satisfied Customers (So Far!)",
+  "text": "Our team is dedicated to helping you with your VEP application and overseeing the process from start to finish in an expedited manner.",
   "section": [
     {
-      "title": "Why Antd?",
-      "content": "Ant Design is a React UI library that has a lot of easy-to-use components for building elegant UI.",
-      "icon": "notes.svg"
+      "title": "Why Us?",
+      "content": "24/7 customer service, and we keep our process simple and efficient, taking care of all the heavy lifting for you.",
+      "icon": "WONDERINGMEME.svg"
     },
     {
-      "title": "Why styled-components?",
-      "content": "Styled Components gives you total control over your components.",
+      "title": "We take the pain away",
+      "content": "Applying for VEP is a pain point that no Singaporean should have to deal with.",
       "icon": "notes.svg"
     }
   ]

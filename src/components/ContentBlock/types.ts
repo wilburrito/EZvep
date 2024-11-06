@@ -21,4 +21,5 @@ export interface ContentBlockProps {
   t: TFunction;
   id: string;
   direction: "left" | "right";
+  imageDescription?: string;
 }

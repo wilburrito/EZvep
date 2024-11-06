@@ -11,8 +11,15 @@ export default function validate(values: validateProps) {
   } else if (!/\S+@\S+\.\S+/.test(values.email)) {
     errors.email = "Email address is invalid";
   }
-  if (!values.message) {
-    errors.message = "Message is required";
+  if (!values.phoneNumber) {
+    errors.phoneNumber = "Number is required";
+  }
+  if (values.phoneNumber.length < 8) {
+    errors.phoneNumber = "Number must be 8 characters";
+  }
+  //check if number is valid (starts with 8 or 9, and is purely numeric)
+  if (!/^[8-9]\d{7}$/.test(values.phoneNumber)) {
+    errors.phoneNumber = "Invalid number";
   }
   return errors;
 }

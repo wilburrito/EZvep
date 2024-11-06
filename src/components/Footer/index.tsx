@@ -49,8 +49,8 @@ const Footer = ({ t }: { t: TFunction }) => {
     <>
       <FooterSection>
         <Container>
-          <Row justify="space-between">
-            <Col lg={10} md={10} sm={12} xs={12}>
+          <Row justify="center">
+            {/* <Col lg={10} md={10} sm={12} xs={12}>
               <Language>{t("Contact")}</Language>
               <Large to="/">{t("Tell us everything")}</Large>
               <Para>
@@ -59,19 +59,12 @@ const Footer = ({ t }: { t: TFunction }) => {
               <a href="mailto:l.qqbadze@gmail.com">
                 <Chat>{t(`Let's Chat`)}</Chat>
               </a>
-            </Col>
+            </Col> */}
             <Col lg={8} md={8} sm={12} xs={12}>
-              <Title>{t("Policy")}</Title>
-              <Large to="/">{t("Application Security")}</Large>
-              <Large to="/">{t("Software Principles")}</Large>
-            </Col>
-            <Col lg={6} md={6} sm={12} xs={12}>
-              <Empty />
-              <Large to="/">{t("Support Center")}</Large>
-              <Large to="/">{t("Customer Support")}</Large>
+              <Large to="/">{t("Terms and Conditions")}</Large>
             </Col>
           </Row>
-          <Row justify="space-between">
+          {/* <Row justify="space-between">
             <Col lg={10} md={10} sm={12} xs={12}>
               <Empty />
               <Language>{t("Address")}</Language>
@@ -107,7 +100,7 @@ const Footer = ({ t }: { t: TFunction }) => {
                 </LanguageSwitch>
               </LanguageSwitchContainer>
             </Col>
-          </Row>
+          </Row> */}
         </Container>
       </FooterSection>
       <Extra>
@@ -120,10 +113,10 @@ const Footer = ({ t }: { t: TFunction }) => {
             <NavLink to="/">
               <LogoContainer>
                 <SvgIcon
-                  src="logo.svg"
+                  src="EZVEPLogo.svg"
                   aria-label="homepage"
                   width="101px"
-                  height="64px"
+                  height="101px"
                 />
               </LogoContainer>
             </NavLink>
@@ -149,12 +142,12 @@ const Footer = ({ t }: { t: TFunction }) => {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <img
+                {/* <img
                   height="36"
                   style={{ border: 0, height: 36 }}
                   src="https://storage.ko-fi.com/cdn/kofi3.png?v=3"
                   alt="Buy Me a Coffee at ko-fi.com"
-                />
+                /> */}
               </a>
             </FooterContainer>
           </Row>

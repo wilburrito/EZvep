@@ -1,6 +1,12 @@
 import { Row } from "antd";
 import styled from "styled-components";
 
+export const ImageDescription = styled("p")`
+  font-size: 1.25em;
+  margin-top: 0.5em;
+  text-align: center;
+`;
+
 export const ContentSection = styled("section")`
   position: relative;
   padding: 10rem 0 8rem;

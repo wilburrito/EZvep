@@ -5,6 +5,7 @@ import AboutContent from "../../content/AboutContent.json";
 import MissionContent from "../../content/MissionContent.json";
 import ProductContent from "../../content/ProductContent.json";
 import ContactContent from "../../content/ContactContent.json";
+import PricingContent from "../../content/PricingContent.json";
 
 const Contact = lazy(() => import("../../components/ContactForm"));
 const MiddleBlock = lazy(() => import("../../components/MiddleBlock"));
@@ -23,6 +24,13 @@ const Home = () => {
         icon="CAR.svg"
         id="intro"
         imageDescription="Picture of our customer with their VEP RFID on their headlights"
+      />
+      <ContentBlock
+        direction="right"
+        title={PricingContent.title}
+        content={PricingContent.text}
+        icon="PRICING.svg"
+        id="pricing"
       />
       <MiddleBlock
         title={MiddleBlockContent.title}

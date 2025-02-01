@@ -131,7 +131,7 @@ const Footer = ({ t }: { t: TFunction }) => {
         ]}
         >
           <div style={{ maxHeight: "400px", overflowY: "auto", paddingRight: "10px" }}>
-            <p><strong style={{ fontSize: "1.1em" }}>Payment Terms</strong><br />To begin processing your application, full payment is required upfront.</p>
+            <p><strong style={{ fontSize: "1.1em" }}>Payment Terms</strong><br />Full payment to be done after your application is completed.</p>
             <p><strong style={{ fontSize: "1.1em" }}>Processing Queue</strong><br />After payment is confirmed, your application will be added to our processing queue.</p>
             <p><strong style={{ fontSize: "1.1em" }}>Estimated Timelines</strong><br />Any estimated timelines provided for completing applications are only approximations. Processing times may vary for each application.</p>
             <p><strong style={{ fontSize: "1.1em" }}>Client Assistance</strong><br />To ensure smooth processing, clients should respond promptly to requests, such as checking emails, to help avoid delays.</p>

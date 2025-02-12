@@ -1,4 +1,5 @@
 import { lazy } from "react";
+import { Helmet } from "react-helmet";
 import IntroContent from "../../content/IntroContent.json";
 import MiddleBlockContent from "../../content/MiddleBlockContent.json";
 import AboutContent from "../../content/AboutContent.json";
@@ -15,6 +16,10 @@ const ContentBlock = lazy(() => import("../../components/ContentBlock"));
 
 const Home = () => {
   return (
+    <>
+    <Helmet>
+      <meta name="google-site-verification" content="Gl2Rv_aKOdbwSfnI58EceXAOkBaWfQG3GetZh_T6wH8" />
+    </Helmet>
     <Container>
       <ScrollToTop />
       <ContentBlock
@@ -65,6 +70,7 @@ const Home = () => {
         id="contact"
       />
     </Container>
+    </>
   );
 };
 

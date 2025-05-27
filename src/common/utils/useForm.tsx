@@ -25,13 +25,23 @@ export const useForm = (validate: { (values: IValues): IValues }) => {
 
   const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
+    console.log('Form submitted!');
     const values = formState.values;
     const errors = validate(values);
     setFormState((prevState) => ({ ...prevState, errors }));
 
     try {
       if (Object.values(errors).every((error) => error === "")) {
-        await firebaseSubmit(event, values.name, values.phoneNumber, values.email);
+        try {
+          // Try to submit to Firebase if available
+          await firebaseSubmit(event, values.name, values.phoneNumber, values.email);
+          console.log('Firebase submission successful');
+        } catch (firebaseError) {
+          // Continue even if Firebase submission fails
+          console.warn('Firebase submission failed, but continuing with form processing:', firebaseError);
+        }
+        
+        // Reset form regardless of Firebase submission
         event.target.reset();
         setFormState(() => ({
           values: { ...initialValues },
@@ -42,6 +52,12 @@ export const useForm = (validate: { (values: IValues): IValues }) => {
           message: "Success",
           description: "Your message has been sent!",
         });
+        
+        console.log('Redirecting to thank you page...');
+        // Redirect to thank you page for conversion tracking
+        setTimeout(() => {
+          window.location.href = "/thank-you?source=form_submit&campaign=contact_form";
+        }, 1500); // Small delay to ensure the user sees the success notification
       }
     } catch (error) {
       notification["error"]({

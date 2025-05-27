@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import { Link } from "react-router-dom";
-import { MenuOutlined } from "@ant-design/icons";
 
 export const HeaderSection = styled("header")`
   padding: 1rem 0.5rem;
@@ -39,9 +38,15 @@ export const Burger = styled("div")`
   }
 
   display: none;
+  cursor: pointer;
 
   svg {
     fill: #2e186a;
+  }
+  
+  .menu-icon {
+    font-size: 24px;
+    color: #2e186a;
   }
 `;
 
@@ -75,11 +80,14 @@ export const Label = styled("span")`
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  
+  .menu-icon {
+    font-size: 24px;
+    color: #2e186a;
+  }
 `;
 
-export const Outline = styled(MenuOutlined)`
-  font-size: 22px;
-`;
+// No longer using the MenuOutlined component
 
 export const Span = styled("span")`
   cursor: pointer;

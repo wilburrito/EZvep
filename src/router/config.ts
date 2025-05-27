@@ -5,10 +5,10 @@ const routes = [
     component: "Home",
   },
   {
-    path: ["/contact"],
+    path: ["/thank-you"],
     exact: true,
-    component: "Contact",
-  }
+    component: "ThankYou",
+  },
 ];
 
 export default routes;

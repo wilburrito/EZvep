@@ -1,0 +1,59 @@
+.fade-in {
+  animation: fadeIn ease 1s;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom carousel styling */
+.ant-carousel .slick-slide {
+  text-align: center;
+  background: transparent;
+  overflow: hidden;
+  padding: 0 1rem;
+}
+
+/* Add Google-style card and carousel styling */
+.ant-carousel {
+  padding: 20px 0 40px;
+}
+
+.ant-carousel .slick-slide > div {
+  padding: 10px 20px;
+}
+
+.ant-carousel .slick-dots li button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d9d9d9;
+}
+
+.ant-carousel .slick-dots li.slick-active button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1890ff;
+}
+
+/* Rating stars color */
+.ant-rate-star-full .ant-rate-star-second,
+.ant-rate-star-full .ant-rate-star-first {
+  color: #ffc107 !important;
+}
+
+/* Date style */
+.date-badge {
+  display: inline-block;
+  font-size: 12px;
+  color: #555;
+  margin-top: 4px;
+}

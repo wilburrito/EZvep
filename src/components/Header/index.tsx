@@ -4,7 +4,7 @@ import { withTranslation, TFunction } from "react-i18next";
 import Container from "../../common/Container";
 import { SvgIcon } from "../../common/SvgIcon";
 import { Button } from "../../common/Button";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import {
   HeaderSection,
   LogoContainer,
@@ -13,7 +13,6 @@ import {
   Menu,
   CustomNavLinkSmall,
   Label,
-  Outline,
   Span,
 } from "./styles";
 
@@ -34,22 +33,21 @@ const Header = ({ t }: { t: TFunction }) => {
     };
     return (
       <>
-        {/* <CustomNavLinkSmall onClick={() => scrollTo("about")}>
+        <CustomNavLinkSmall onClick={() => scrollTo("reviews")}>
+          <Span>{t("Reviews")}</Span>
+        </CustomNavLinkSmall>
+        <CustomNavLinkSmall onClick={() => scrollTo("pricing")}>
+          <Span>{t("Pricing")}</Span>
+        </CustomNavLinkSmall>
+        <CustomNavLinkSmall onClick={() => scrollTo("about")}>
           <Span>{t("About")}</Span>
         </CustomNavLinkSmall>
-        <CustomNavLinkSmall onClick={() => scrollTo("mission")}>
-          <Span>{t("Mission")}</Span>
-        </CustomNavLinkSmall>
-        <CustomNavLinkSmall onClick={() => scrollTo("product")}>
-          <Span>{t("Product")}</Span>
-        </CustomNavLinkSmall> */}
         <CustomNavLinkSmall
           style={{ width: "180px" }}
+          onClick={() => scrollTo("contact")}
         >
           <Span>
-            <Link to="/contact">
-              <Button>{t("Contact Us!")}</Button>
-            </Link>
+            <Button>{t("Contact Us!")}</Button>
           </Span>
         </CustomNavLinkSmall>
       </>
@@ -67,7 +65,7 @@ const Header = ({ t }: { t: TFunction }) => {
             <MenuItem />
           </NotHidden>
           <Burger onClick={toggleButton}>
-            <Outline />
+            <div className="menu-icon">☰</div>
           </Burger>
         </Row>
         <Drawer closable={false} open={visible} onClose={toggleButton}>
@@ -77,7 +75,7 @@ const Header = ({ t }: { t: TFunction }) => {
                 <Menu>Menu</Menu>
               </Col>
               <Col span={12}>
-                <Outline />
+                <div className="menu-icon">☰</div>
               </Col>
             </Label>
           </Col>

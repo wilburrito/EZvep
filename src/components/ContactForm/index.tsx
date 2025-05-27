@@ -7,7 +7,7 @@ import validate from "../../common/utils/validationRules";
 import { Button } from "../../common/Button";
 import Block from "../Block";
 import Input from "../../common/Input";
-import TextArea from "../../common/TextArea";
+// TextArea is not used in this component
 import { ContactContainer, FormGroup, Span, ButtonContainer } from "./styles";
 //import { handleSubmit as firebaseSubmit } from "../../backend/submitForm";
 
@@ -71,7 +71,7 @@ const Contact = ({ title, content, id, t }: ContactProps) => {
                 <ValidationType type="email" />
               </Col>
               <ButtonContainer>
-                <Button name="submit">{t("Submit")}</Button>
+                <Button name="submit" htmlType="submit">{t("Submit")}</Button>
               </ButtonContainer>
             </FormGroup>
           </Slide>

@@ -55,7 +55,7 @@ const ThankYou = ({ t }: ThankYouProps) => {
           <Col lg={12} md={12} sm={24} xs={24}>
             <div className="fade-in">
               <ThankYouContent>
-                <SvgIcon src="CHECK_MARK.svg" width="64px" height="64px" />
+                <SvgIcon src="check-circle.svg" width="64px" height="64px" />
                 <Title>{t("Thank You!")}</Title>
                 <Subtitle>
                   {t("Your submission has been received. We'll contact you shortly.")}

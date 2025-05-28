@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Row, Col, Rate, Spin } from "antd";
+import { useState, useEffect, useRef } from "react";
+import { Row, Col, Rate, Spin, Button, Carousel } from "antd";
 import { withTranslation } from "react-i18next";
 import { GoogleReviewsProps } from "./types";
 import './styles.css';
@@ -35,7 +35,20 @@ interface GoogleReview {
 const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
   const [reviews, setReviews] = useState<GoogleReview[]>([]);
   const [loading, setLoading] = useState(true);
-  // Component uses a Row-Col grid layout for responsive display
+  const carouselRef = useRef<any>(null);
+
+  // Handle carousel navigation
+  const nextSlide = () => {
+    if (carouselRef.current) {
+      carouselRef.current.next();
+    }
+  };
+
+  const prevSlide = () => {
+    if (carouselRef.current) {
+      carouselRef.current.prev();
+    }
+  };
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -90,8 +103,8 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
             // Sort by time (newest first)
             uniqueAuthorReviews.sort((a, b) => b.time - a.time);
             
-            // Take only up to 6 reviews to avoid overcrowding
-            setReviews(uniqueAuthorReviews.slice(0, 6));
+            // Display all unique reviews
+            setReviews(uniqueAuthorReviews);
           } else {
             setReviews([]);
           }
@@ -154,9 +167,66 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
             </div>
           ) : (
             <ReviewsWrapper>
-              <Row gutter={[16, 16]} className="reviews-grid">
-                {reviews.map((review, index) => (
-                  <Col xs={24} sm={24} md={12} lg={8} key={index}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '15px' }}>
+                <Button
+                  type="primary"
+                  shape="circle"
+                  onClick={prevSlide}
+                  style={{ 
+                    marginRight: '10px',
+                    fontSize: '16px',
+                    width: '38px',
+                    height: '38px'
+                  }}
+                >
+                  ←
+                </Button>
+                <Button
+                  type="primary"
+                  shape="circle"
+                  onClick={nextSlide}
+                  style={{ 
+                    fontSize: '16px',
+                    width: '38px',
+                    height: '38px'
+                  }}
+                >
+                  →
+                </Button>
+              </div>
+
+              <div className="carousel-container">
+                <Carousel 
+                  ref={carouselRef}
+                  dots={false}
+                  arrows={false}
+                  slidesToShow={3}
+                  autoplay={false}
+                  infinite={false}
+                  slidesToScroll={1}
+                  draggable
+                  swipeToSlide
+                  className="full-width-carousel"
+                  initialSlide={0}
+                  responsive={[
+                    {
+                      breakpoint: 1400,
+                      settings: {
+                        slidesToShow: 2,
+                        slidesToScroll: 1,
+                      },
+                    },
+                    {
+                      breakpoint: 992,
+                      settings: {
+                        slidesToShow: 1,
+                        slidesToScroll: 1,
+                      },
+                    },
+                  ]}
+                >
+                  {reviews.map((review, index) => (
+                    <div key={index} className="carousel-item-container">
                     <ReviewCard className="review-card">
                         <ReviewAuthor>
                           {review.profile_photo_url ? (
@@ -239,9 +309,10 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
                           </ReviewDate>
                         </div>
                       </ReviewCard>
-                  </Col>
-                ))}
-              </Row>
+                    </div>
+                  ))}
+                </Carousel>
+              </div>
             </ReviewsWrapper>
           )}
         </Col>

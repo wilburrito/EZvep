@@ -1,27 +1,48 @@
-/* Enhanced grid styling for reviews */
-.reviews-grid {
+/* Enhanced carousel styling for reviews */
+.carousel-container {
   width: 100%;
-  margin: 0 !important;
+  position: relative;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* Carousel item container */
+.carousel-item-container {
+  padding: 0 10px;
+  box-sizing: border-box;
+  height: 100%;
+  display: flex !important;
 }
 
 /* Fix the width issue with review cards */
 .full-width-carousel .slick-list {
+  overflow: hidden;
   margin: 0 -10px;
 }
 
 .full-width-carousel .slick-track {
-  display: flex;
+  display: flex !important;
   margin: 0 auto;
 }
 
 .full-width-carousel .slick-slide {
-  height: auto;
+  height: auto !important;
+  float: none;
+  display: flex !important;
   padding: 0 10px;
   box-sizing: border-box;
 }
 
 .full-width-carousel .slick-slide > div {
+  width: 100%;
   height: 100%;
+  display: flex !important;
+}
+
+.full-width-carousel .slick-slide > div > div {
+  width: 100%;
+  height: 100%;
+  display: flex !important;
 }
 
 /* Make all review cards the same height */
@@ -34,7 +55,8 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin: 0;
-  min-height: 280px;
+  min-height: 300px;
+  width: 100%;
 }
 
 /* Author section styling */

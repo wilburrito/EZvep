@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import { Row, Col, Rate, Spin, Button, Carousel } from "antd";
+import { useState, useEffect } from "react";
+import { Row, Col, Rate, Spin } from "antd";
 import { withTranslation } from "react-i18next";
 import { GoogleReviewsProps } from "./types";
 import './styles.css';
+import './carousel-fix.css';
 import {
   GoogleReviewsContainer,
   ReviewsWrapper,
@@ -34,20 +35,7 @@ interface GoogleReview {
 const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
   const [reviews, setReviews] = useState<GoogleReview[]>([]);
   const [loading, setLoading] = useState(true);
-  const carouselRef = useRef<any>(null);
-
-  // Handle carousel navigation
-  const nextSlide = () => {
-    if (carouselRef.current) {
-      carouselRef.current.next();
-    }
-  };
-
-  const prevSlide = () => {
-    if (carouselRef.current) {
-      carouselRef.current.prev();
-    }
-  };
+  // Component uses a Row-Col grid layout for responsive display
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -166,64 +154,10 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
             </div>
           ) : (
             <ReviewsWrapper>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '15px' }}>
-                <Button
-                  type="primary"
-                  shape="circle"
-                  onClick={prevSlide}
-                  style={{ 
-                    marginRight: '10px',
-                    fontSize: '16px',
-                    width: '38px',
-                    height: '38px'
-                  }}
-                >
-                  ←
-                </Button>
-                <Button
-                  type="primary"
-                  shape="circle"
-                  onClick={nextSlide}
-                  style={{ 
-                    fontSize: '16px',
-                    width: '38px',
-                    height: '38px'
-                  }}
-                >
-                  →
-                </Button>
-              </div>
-
-              <div className="carousel-container">
-                <Carousel 
-                  ref={carouselRef}
-                  dots={false}
-                  slidesToShow={3}
-                  autoplay={false}
-                  infinite={true}
-                  slidesToScroll={1}
-                  centerPadding="0px"
-                  className="full-width-carousel"
-                  responsive={[
-                    {
-                      breakpoint: 1400,
-                      settings: {
-                        slidesToShow: 2,
-                        slidesToScroll: 1,
-                      },
-                    },
-                    {
-                      breakpoint: 992,
-                      settings: {
-                        slidesToShow: 1,
-                        slidesToScroll: 1,
-                      },
-                    },
-                  ]}
-                >
-                  {reviews.map((review, index) => (
-                    <div key={index}>
-                      <ReviewCard className="review-card">
+              <Row gutter={[16, 16]} className="reviews-grid">
+                {reviews.map((review, index) => (
+                  <Col xs={24} sm={24} md={12} lg={8} key={index}>
+                    <ReviewCard className="review-card">
                         <ReviewAuthor>
                           {review.profile_photo_url ? (
                             <img 
@@ -305,10 +239,9 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
                           </ReviewDate>
                         </div>
                       </ReviewCard>
-                    </div>
-                  ))}
-                </Carousel>
-              </div>
+                  </Col>
+                ))}
+              </Row>
             </ReviewsWrapper>
           )}
         </Col>

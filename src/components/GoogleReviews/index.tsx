@@ -63,10 +63,10 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
         // Use Google Places API to fetch real reviews
         const useManualReviews = false;
         
-        // Determine the API URL based on environment
+        // Determine the API URL - optimized for Vercel deployment
         const apiBaseUrl = useManualReviews
-          ? (process.env.NODE_ENV === 'production' ? '/api/manual-reviews' : 'http://localhost:5000/api/manual-reviews')
-          : (process.env.NODE_ENV === 'production' ? '/api/google-reviews' : 'http://localhost:5000/api/google-reviews');
+          ? '/api/manual-reviews'
+          : '/api/google-reviews';
         
         console.log('🌐 Using API URL:', apiBaseUrl);
         

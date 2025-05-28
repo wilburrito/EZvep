@@ -96,7 +96,7 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
             // First pass - get only unique authors with their most recent review
             const authorMap = new Map<string, GoogleReview>();
             
-            processedData.forEach(review => {
+            processedData.forEach((review: GoogleReview) => {
               const authorName = review.author_name?.trim() || 'Anonymous';
               // Only keep the review if we haven't seen this author or if it's newer than the one we have
               if (!authorMap.has(authorName) || review.time > authorMap.get(authorName)!.time) {

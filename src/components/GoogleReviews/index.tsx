@@ -89,7 +89,19 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
           
           if (data.reviews && data.reviews.length > 0) {
             console.log(`✅ Successfully loaded ${data.reviews.length} reviews from API`);
-            setReviews(data.reviews);
+            
+            // Deduplicate reviews by author name
+            const uniqueReviews = [];
+            const authorsSeen = new Set();
+            
+            data.reviews.forEach(review => {
+              if (!authorsSeen.has(review.author_name)) {
+                authorsSeen.add(review.author_name);
+                uniqueReviews.push(review);
+              }
+            });
+            
+            setReviews(uniqueReviews);
           } else {
             console.log('⚠️ No reviews found in API response');
             setReviews([]);

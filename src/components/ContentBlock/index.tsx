@@ -104,6 +104,13 @@ const ContentBlock = ({
                   </Row>
                 </ServiceWrapper>
               )}
+              
+              {/* Contact Us button at the bottom of every section */}
+              <ButtonWrapper style={{ marginTop: '30px' }}>
+                <Button onClick={() => scrollTo("contact")}>
+                  {t("Contact Us!")}
+                </Button>
+              </ButtonWrapper>
             </ContentWrapper>
           </Col>
         </StyledRow>

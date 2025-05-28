@@ -91,10 +91,10 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
             console.log(`✅ Successfully loaded ${data.reviews.length} reviews from API`);
             
             // Deduplicate reviews by author name
-            const uniqueReviews = [];
-            const authorsSeen = new Set();
+            const uniqueReviews: GoogleReview[] = [];
+            const authorsSeen: Set<string> = new Set();
             
-            data.reviews.forEach(review => {
+            data.reviews.forEach((review: GoogleReview) => {
               if (!authorsSeen.has(review.author_name)) {
                 authorsSeen.add(review.author_name);
                 uniqueReviews.push(review);

@@ -13,12 +13,13 @@ interface MiddleBlockProps {
 }
 
 const MiddleBlock = ({ title, content, button, t }: MiddleBlockProps) => {
-  const scrollTo = (id: string) => {
-    const element = document.getElementById(id) as HTMLDivElement;
-    element.scrollIntoView({
-      behavior: "smooth",
-    });
-  };
+  // Smooth scroll functionality commented out as it's not currently used
+  // const scrollTo = (id: string) => {
+  //   const element = document.getElementById(id) as HTMLDivElement;
+  //   element.scrollIntoView({
+  //     behavior: "smooth",
+  //   });
+  // };
   return (
     <MiddleBlockSection>
       <Slide direction="up" triggerOnce>

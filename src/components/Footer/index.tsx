@@ -5,22 +5,14 @@ import Container from "../../common/Container";
 import { useState } from "react";
 import { Modal } from "antd";
 
-import i18n from "i18next";
+// i18n import removed as it's no longer needed
 import {
   FooterSection,
-  Title,
   NavLink,
   Extra,
   LogoContainer,
-  Para,
   Large,
-  Chat,
-  Empty,
   FooterContainer,
-  Language,
-  Label,
-  LanguageSwitch,
-  LanguageSwitchContainer,
 } from "./styles";
 
 interface SocialLinkProps {
@@ -43,9 +35,7 @@ const Footer = ({ t }: { t: TFunction }) => {
     setIsModalVisible(false);
   }
 
-  const handleChange = (language: string) => {
-    i18n.changeLanguage(language);
-  };
+  // Language change functionality removed as it's not currently used
 
   const SocialLink = ({ href, src }: SocialLinkProps) => {
     return (

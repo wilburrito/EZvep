@@ -63,12 +63,12 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
         // Use Google Places API to fetch real reviews
         const useManualReviews = false;
         
-        // Determine the API URL based on environment
+        // Determine the API URL based on environment - optimized for Vercel deployment
         const apiBaseUrl = useManualReviews
-          ? (process.env.NODE_ENV === 'production' ? '/api/manual-reviews' : 'http://localhost:5000/api/manual-reviews')
-          : (process.env.NODE_ENV === 'production' ? '/api/google-reviews' : 'http://localhost:5000/api/google-reviews');
+          ? '/api/manual-reviews'
+          : '/api/google-reviews';
         
-        console.log('🌐 Using API URL:', apiBaseUrl);
+        // Production-ready API endpoints
         
         try {
           // Make the API call to our backend with CORS headers
@@ -88,14 +88,14 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
           const data = await response.json();
           
           if (data.reviews && data.reviews.length > 0) {
-            console.log(`✅ Successfully loaded ${data.reviews.length} reviews from API`);
+            // Reviews successfully loaded
             setReviews(data.reviews);
           } else {
-            console.log('⚠️ No reviews found in API response');
+            // No reviews found in API response
             setReviews([]);
           }
         } catch (error) {
-          console.error('⛔ Error fetching reviews from API:', error);
+          console.error('Error fetching reviews:', error instanceof Error ? error.message : String(error));
           // Use fallback data if API fails
           setReviews([
             {

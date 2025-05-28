@@ -7,6 +7,9 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   
+  // Log debugging info for API call
+  console.log('📢 API call received for Google Reviews');
+  
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -15,12 +18,15 @@ module.exports = async (req, res) => {
   try {
     // Get the Place ID from request query or use default
     const placeId = req.query.placeId || process.env.GOOGLE_PLACE_ID || 'ChIJ88pp-7EZtE0RttmdZtbpdMc';
+    console.log(`🔍 Using Place ID: ${placeId}`);
     
     // Google Places API key (stored in Vercel environment variables)
     const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    console.log(`🔑 API Key available: ${apiKey ? 'Yes' : 'No'}`);
     
     // Use mock data if no API key is provided
     if (!apiKey) {
+      console.log('⚠️ No API key found, returning mock data');
       // Return mock data with proper formatting for UI
       return res.status(200).json({
         name: "EZVEP",
@@ -53,6 +59,7 @@ module.exports = async (req, res) => {
     }
 
     // Make request to Google Places API
+    console.log('🌐 Making request to Google Places API...');
     const placesResponse = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
       params: {
         place_id: placeId,
@@ -64,9 +71,13 @@ module.exports = async (req, res) => {
         reviews_limit: 20
       }
     });
+    
+    console.log(`📊 Google API response status: ${placesResponse.data.status}`);
 
     // Check for valid response
     if (placesResponse.data.status !== 'OK' || !placesResponse.data.result) {
+      console.log(`❌ Invalid Google API response: ${placesResponse.data.status}`);
+      console.log(`❌ Error message: ${placesResponse.data.error_message || 'No error message provided'}`);
       return res.status(200).json({
         name: "EZVEP",
         averageRating: 4.8,
@@ -94,6 +105,7 @@ module.exports = async (req, res) => {
     
     // Check if we have reviews
     if (!result.reviews || result.reviews.length === 0) {
+      console.log('⚠️ No reviews found in Google API response');
       return res.status(200).json({
         name: result.name || "EZVEP",
         averageRating: result.rating || 4.8,
@@ -117,6 +129,7 @@ module.exports = async (req, res) => {
       });
     } else {
       // Process and format reviews for the enhanced UI
+      console.log(`✅ Found ${result.reviews.length} reviews in Google API response`);
       const processedReviews = result.reviews.map(review => {
         if (review.photos && review.photos.length > 0) {
           return {
@@ -137,6 +150,9 @@ module.exports = async (req, res) => {
     
   } catch (error) {
     // Error handling with fallback data
+    console.log('❌ Exception in API call:');
+    console.error(error);
+    console.log('Returning fallback data instead');
     return res.status(200).json({
       name: "EZVEP",
       averageRating: 4.8,

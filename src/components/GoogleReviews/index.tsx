@@ -50,13 +50,18 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
     }
   };
 
+  // Add a state for error tracking
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchReviews = async () => {
       setLoading(true);
+      setError(null); // Reset error state
       
       try {
         // Call our backend API to fetch Google reviews
         const placeId = process.env.REACT_APP_GOOGLE_PLACE_ID || "ChIJ88pp-7EZtE0RttmdZtbpdMc";
+        console.log('Fetching reviews with Place ID:', placeId);
         
         // Use Google Places API to fetch real reviews
         const useManualReviews = false;
@@ -68,6 +73,7 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
         
         try {
           // Make the API call to our backend with CORS headers
+          console.log(`Calling API: ${apiBaseUrl}?placeId=${placeId}`);
           const response = await fetch(`${apiBaseUrl}?placeId=${placeId}`, {
             method: 'GET',
             headers: {
@@ -77,10 +83,16 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
           });
           
           if (!response.ok) {
-            throw new Error(`API response error: ${response.status} ${response.statusText}`);
+            const errorMessage = `API response error: ${response.status} ${response.statusText}`;
+            console.error(errorMessage);
+            setError(errorMessage);
+            throw new Error(errorMessage);
           }
           
+          console.log('API response received');
+          
           const data = await response.json();
+          console.log(`Received ${data.reviews?.length || 0} reviews from API`);
           
           if (data.reviews && data.reviews.length > 0) {
             // Deduplicate reviews by author name and ensure exactly one unique review per author
@@ -108,7 +120,11 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
           } else {
             setReviews([]);
           }
-        } catch (error) {
+        } catch (error: any) {
+          // Log error details
+          console.error('Error fetching reviews:', error);
+          setError(error.message || 'Error fetching reviews');
+          
           // Use fallback data if API fails
           setReviews([
             {
@@ -134,8 +150,10 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
             }
           ]);
         }
-      } catch (error) {
-        // Error handling
+      } catch (error: any) {
+        // General error handling
+        console.error('General error:', error);
+        setError(error.message || 'Unexpected error occurred');
       } finally {
         setLoading(false);
       }
@@ -164,6 +182,12 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
           {loading ? (
             <div style={{ textAlign: "center", padding: "40px 0" }}>
               <Spin size="large" />
+            </div>
+          ) : error ? (
+            <div style={{ textAlign: "center", padding: "40px 0", color: "#f5222d" }}>
+              <h3>Error Loading Reviews</h3>
+              <p>{error}</p>
+              <p>Using fallback reviews instead</p>
             </div>
           ) : (
             <ReviewsWrapper>

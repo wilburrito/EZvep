@@ -90,18 +90,28 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
           if (data.reviews && data.reviews.length > 0) {
             console.log(`✅ Successfully loaded ${data.reviews.length} reviews from API`);
             
-            // Deduplicate reviews by author name
-            const uniqueReviews: GoogleReview[] = [];
-            const authorsSeen: Set<string> = new Set();
+            // Deduplicate reviews by author name and ensure exactly one unique review per author
+            const processedData = Array.isArray(data.reviews) ? data.reviews : [];
             
-            data.reviews.forEach((review: GoogleReview) => {
-              if (!authorsSeen.has(review.author_name)) {
-                authorsSeen.add(review.author_name);
-                uniqueReviews.push(review);
+            // First pass - get only unique authors with their most recent review
+            const authorMap = new Map<string, GoogleReview>();
+            
+            processedData.forEach(review => {
+              const authorName = review.author_name?.trim() || 'Anonymous';
+              // Only keep the review if we haven't seen this author or if it's newer than the one we have
+              if (!authorMap.has(authorName) || review.time > authorMap.get(authorName)!.time) {
+                authorMap.set(authorName, review);
               }
             });
             
-            setReviews(uniqueReviews);
+            // Convert map values to array
+            const uniqueAuthorReviews = Array.from(authorMap.values());
+            
+            // Sort by time (newest first)
+            uniqueAuthorReviews.sort((a, b) => b.time - a.time);
+            
+            // Take only up to 6 reviews to avoid overcrowding
+            setReviews(uniqueAuthorReviews.slice(0, 6));
           } else {
             console.log('⚠️ No reviews found in API response');
             setReviews([]);
@@ -202,20 +212,24 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
                   autoplay={false}
                   infinite={true}
                   cssEase={'ease-out'}
-                  slidesPerRow={1}
+                  slidesToScroll={1}
                   centerPadding="0px"
                   className="full-width-carousel"
+                  adaptiveHeight={false}
+                  arrows={false}
                   responsive={[
                     {
                       breakpoint: 1400,
                       settings: {
                         slidesToShow: 2,
+                        slidesToScroll: 1,
                       },
                     },
                     {
                       breakpoint: 992,
                       settings: {
                         slidesToShow: 1,
+                        slidesToScroll: 1,
                       },
                     },
                   ]}
@@ -223,7 +237,7 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
                   {/* Sort reviews by newest first (highest timestamp) */}
                   {[...reviews].sort((a, b) => b.time - a.time).map((review, index) => (
                     <div key={index} style={{ padding: '0 10px' }}>
-                      <ReviewCard>
+                      <ReviewCard className="review-card">
                         <ReviewAuthor>
                           {review.profile_photo_url ? (
                             <img 

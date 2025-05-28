@@ -60,17 +60,50 @@ module.exports = async (req, res) => {
 
     // Make request to Google Places API
     console.log('🌐 Making request to Google Places API...');
+    
+    // First make a request to get all available reviews
     const placesResponse = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
       params: {
         place_id: placeId,
         key: apiKey,
         // Explicitly request fields needed for the enhanced UI
-        fields: 'reviews(author_name,rating,text,time,profile_photo_url),rating,user_ratings_total',
+        fields: 'reviews(author_name,rating,text,time,profile_photo_url),rating,user_ratings_total,name',
         reviews_no_translations: true,
         reviews_sort: 'newest',
-        reviews_limit: 20
+        reviews_no_translation_sorting: true,  // This helps get more reviews
+        language: 'en'  // Force English reviews for consistency
       }
     });
+    
+    // If we didn't get enough reviews, try another request with different parameters
+    let additionalReviews = [];
+    if (placesResponse.data.status === 'OK' && 
+        placesResponse.data.result && 
+        placesResponse.data.result.reviews && 
+        placesResponse.data.result.reviews.length < 10) {
+        
+      try {
+        console.log('🔍 Attempting to fetch additional reviews...');
+        const additionalResponse = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
+          params: {
+            place_id: placeId,
+            key: apiKey,
+            fields: 'reviews',
+            reviews_sort: 'relevance',  // Try a different sort order
+            reviews_no_translations: true
+          }
+        });
+        
+        if (additionalResponse.data.status === 'OK' && 
+            additionalResponse.data.result && 
+            additionalResponse.data.result.reviews) {
+          additionalReviews = additionalResponse.data.result.reviews;
+          console.log(`✅ Found ${additionalReviews.length} additional reviews`);
+        }
+      } catch (err) {
+        console.log('⚠️ Error fetching additional reviews:', err.message);
+      }
+    }
     
     console.log(`📊 Google API response status: ${placesResponse.data.status}`);
 
@@ -130,7 +163,27 @@ module.exports = async (req, res) => {
     } else {
       // Process and format reviews for the enhanced UI
       console.log(`✅ Found ${result.reviews.length} reviews in Google API response`);
-      const processedReviews = result.reviews.map(review => {
+      
+      // Combine the main reviews with any additional reviews we found
+      let allReviews = [...result.reviews];
+      
+      // Add additional reviews if we found any
+      if (additionalReviews && additionalReviews.length > 0) {
+        // Combine reviews but avoid duplicates by checking author names
+        const seenAuthors = new Set(allReviews.map(r => r.author_name));
+        
+        additionalReviews.forEach(review => {
+          if (!seenAuthors.has(review.author_name)) {
+            allReviews.push(review);
+            seenAuthors.add(review.author_name);
+          }
+        });
+        
+        console.log(`📃 Total unique reviews after merging: ${allReviews.length}`);
+      }
+      
+      // Process all reviews for enhanced UI
+      const processedReviews = allReviews.map(review => {
         if (review.photos && review.photos.length > 0) {
           return {
             ...review,
@@ -139,6 +192,9 @@ module.exports = async (req, res) => {
         }
         return review;
       });
+      
+      // Sort reviews by time (newest first)
+      processedReviews.sort((a, b) => b.time - a.time);
       
       return res.status(200).json({
         name: result.name || 'EZVEP',

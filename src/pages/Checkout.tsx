@@ -51,33 +51,74 @@ const CheckoutPage = () => {
 
     try {
       console.log('Attempting payment with Stripe...');
-      // Call our backend API to create a Stripe checkout session
-      // Use relative URL for Vercel deployment to ensure it works correctly
-      const response = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          amount: orderDetails.amount, // Send raw amount, backend will convert to cents
-          currency: orderDetails.currency.toLowerCase(),
-          customerEmail: customerEmail,
-          customerName: customerName,
-          productName: "EZVEP DIY VEP Guide"
-        })
-      });
+      
+      // Try multiple API endpoints to handle the transition period
+      const apiEndpoints = [
+        '/api/create-checkout-session',          // New Vercel serverless function
+        'https://www.ezvep.com/api/create-checkout-session' // Production URL
+      ];
+      
+      let lastError = null;
+      let successUrl = null;
+      
+      for (const apiUrl of apiEndpoints) {
+        try {
+          console.log(`Trying endpoint: ${apiUrl}`);
+          const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            mode: 'cors',
+            credentials: 'omit',
+            body: JSON.stringify({
+              customer_email: customerEmail,
+              customer_name: customerName,
+              product_name: "DIY VEP Guide",
+              product_price: 47.0,
+              currency: "sgd"
+            })
+          });
 
-      const data = await response.json();
-
-      if (data.url) {
-        // If we got a successful response with checkout URL, redirect to Stripe
-        window.location.href = data.url;
-      } else {
-        setError(data.error?.message || "Failed to create payment session");
+          if (!response.ok) {
+            console.log(`Endpoint ${apiUrl} returned status: ${response.status}`);
+            lastError = `HTTP error! status: ${response.status}`;
+            continue; // Try next endpoint
+          }
+          
+          try {
+            const data = await response.json();
+            if (data && data.url) {
+              successUrl = data.url;
+              break; // Success! Exit the loop
+            } else {
+              console.log(`Endpoint ${apiUrl} returned invalid data:`, data);
+              lastError = 'Invalid response format';
+              continue;
+            }
+          } catch (jsonError) {
+            console.log(`JSON parsing error for ${apiUrl}:`, jsonError);
+            lastError = 'Failed to parse server response';
+            continue; // Try next endpoint
+          }
+        } catch (error) {
+          // Handle fetch error with proper type checking
+          const fetchError = error as Error;
+          console.log(`Fetch error for ${apiUrl}:`, fetchError);
+          lastError = fetchError?.message || 'Network error';
+          // Continue to next endpoint
+        }
       }
-    } catch (err) {
-      setError("Error connecting to payment service");
-      console.error(err);
+      
+      if (successUrl) {
+        window.location.href = successUrl;
+      } else {
+        throw new Error(lastError || 'All payment endpoints failed');
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setError("Failed to process payment. Please try again.");
     } finally {
       setLoading(false);
     }

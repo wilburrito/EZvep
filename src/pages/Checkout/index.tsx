@@ -107,11 +107,10 @@ const Checkout = () => {
       // Save customer info to session storage for persistence across redirects
       sessionStorage.setItem('customer_info', JSON.stringify(values));
       
-      // Always use production URLs to avoid localhost connection issues
-      // Using absolute URLs ensures this works in all environments
+      // Always use the direct-api endpoint which has proper CORS headers configured
+      // This endpoint is specifically configured to handle cross-origin requests
       const apiEndpoints = [
-        'https://www.ezvep.com/direct-api/create-checkout-session',
-        'https://www.ezvep.com/api/create-checkout-session'
+        'https://www.ezvep.com/direct-api/create-checkout-session'
       ];
       
       console.log('Attempting payment with endpoints:', apiEndpoints);
@@ -141,14 +140,26 @@ const Checkout = () => {
           });
           
           if (!resp.ok) {
-            const errorData = await resp.json().catch(() => ({}));
-            lastError = errorData.error || `HTTP error: ${resp.status}`;
+            try {
+              const errorData = await resp.json();
+              lastError = errorData.error || `HTTP error: ${resp.status}`;
+            } catch (e) {
+              // If JSON parsing fails, use status text
+              lastError = `HTTP error: ${resp.status} ${resp.statusText}`;
+            }
             console.error(`API call to ${apiUrl} failed:`, lastError);
-            errorMessage = `Payment service connection failed (${resp.status}). Please try again or contact support.`;
+            errorMessage = `Payment service error (${resp.status}). Please try again or contact support.`;
             continue; // Try next endpoint
           }
           
-          response = await resp.json();
+          try {
+            response = await resp.json();
+          } catch (e) {
+            lastError = 'Invalid response format from server';
+            console.error(`API call to ${apiUrl} failed with parsing error:`, e);
+            errorMessage = 'Unable to process the server response. Please try again.';
+            continue; // Try next endpoint
+          }
           break; // Success, exit loop
         } catch (err) {
           lastError = err instanceof Error ? err.message : 'Unknown error';

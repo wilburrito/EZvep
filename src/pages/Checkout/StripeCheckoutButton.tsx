@@ -1,6 +1,32 @@
 import React, { useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
 import { Button } from 'antd';
+
+// TypeScript declarations for Stripe
+declare namespace Stripe {
+  interface StripeObject {
+    redirectToCheckout(options: RedirectToCheckoutOptions): Promise<{ error?: Error }>;
+  }
+  
+  interface RedirectToCheckoutOptions {
+    lineItems: Array<{
+      price: string;
+      quantity: number;
+    }>;
+    mode: 'payment' | 'subscription';
+    successUrl: string;
+    cancelUrl: string;
+    customerEmail?: string;
+  }
+  
+  interface Error {
+    message: string;
+  }
+}
+
+// Helper function to load Stripe
+declare function loadStripe(publishableKey: string): Promise<Stripe.StripeObject | null>;
+
+// Load Stripe instance with our publishable key
 
 // Your Stripe publishable key from Vercel environment variables
 // We're using the live key from the previous console output
@@ -30,18 +56,14 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
         throw new Error('Could not initialize Stripe');
       }
       
-      // Option 1: Create checkout session on the client side
-      // This is a fallback approach for when the server API isn't working
+      // Create a Checkout Session with the proper line items format
+      // For client-side redirects, we need to use the pre-defined price ID
+      // from your Stripe dashboard rather than creating products on-the-fly
       const { error } = await stripe.redirectToCheckout({
         lineItems: [
           {
-            price_data: {
-              currency: 'sgd',
-              product_data: {
-                name: 'DIY VEP Guide',
-              },
-              unit_amount: 4700, // $47.00 in cents
-            },
+            // Using a price ID from your Stripe dashboard
+            price: 'price_1RVFITKgKAyHWkDiF2YdFX6X', // Replace with your actual price ID
             quantity: 1,
           },
         ],

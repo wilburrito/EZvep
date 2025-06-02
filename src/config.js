@@ -21,7 +21,10 @@ const config = {
   api: {
     baseUrl: isProduction ? PRODUCTION_API_URL : LOCAL_API_URL,
     endpoints: {
-      createCheckoutSession: '/api/create-checkout-session',
+      // Use the direct endpoint which has enhanced CORS support
+      createCheckoutSession: '/direct-api/create-checkout-session',
+      // Legacy endpoint as fallback
+      legacyCreateCheckoutSession: '/api/create-checkout-session',
       paymentStatus: '/api/payment-status',
       webhook: '/webhook'
     }

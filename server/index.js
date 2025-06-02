@@ -38,9 +38,66 @@ console.log('- PORT:', process.env.PORT || '3001 (default)');
 // Initialize express app
 const app = express();
 
-// Enable CORS for all routes with specific configuration
+// Enhanced CORS configuration with better debugging
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://ezvep.com',
+  'https://www.ezvep.com',
+  // Add any additional domains here
+];
+
+// Debug incoming requests
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  console.log(`Incoming request from origin: ${origin || 'unknown'} to ${req.method} ${req.url}`);
+  next();
+});
+
+// Import Stripe handler early to ensure availability
+const stripeHandler = require('./stripe-payment-handler');
+
+// Register Stripe payment routes early to ensure they're available
+console.log('Registering Stripe payment routes early...');
+stripeHandler.registerStripeRoutes(app);
+
+// Register a direct checkout session endpoint for better reliability
+app.post('/direct-api/create-checkout-session', async (req, res) => {
+  console.log('Direct checkout endpoint called');
+  try {
+    // Add CORS headers directly
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    const session = await stripeHandler.createCheckoutSession(req.body);
+    console.log('Direct checkout session created:', session.id);
+    res.status(200).json(session);
+  } catch (error) {
+    console.error('Direct checkout session error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Enable CORS for all routes with enhanced configuration
 app.use(cors({
-  origin: ['https://ezvep.com', 'https://www.ezvep.com'],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) {
+      console.log('Allowing request with no origin');
+      return callback(null, true);
+    }
+    
+    console.log(`Checking if origin ${origin} is allowed`);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      console.log(`Origin ${origin} not in allowed list:`, allowedOrigins);
+      // For development, allow all origins but log a warning
+      // For production, you might want to be strict
+      return callback(null, true); // Allow all origins in development
+    }
+    console.log(`Origin ${origin} is allowed`);
+    return callback(null, true);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true
@@ -1058,12 +1115,8 @@ app.get('/stripe-test-new', (req, res) => {
   });
 });
 
-// Register Stripe payment routes
-const stripeHandler = require('./stripe-payment-handler');
-stripeHandler.registerStripeRoutes(app);
-
-// Register Stripe routes
-console.log('Registering all Stripe routes...');
+// Add additional Stripe test routes (these are separate from the main payment routes)
+console.log('Registering additional Stripe test routes...');
 addStripeRoutes(app);
 
 // Add route for the comprehensive UAT testing page

@@ -164,8 +164,6 @@ async function processPaymentSuccess(session, transporter) {
     
     // If we couldn't identify from metadata, try to check line items
     // This requires an expanded session with line_items from Stripe
-    let identifiedFromLineItems = false;
-    
     if (session.line_items) {
       console.log('Line items available, checking for DIY VEP Guide...');
       console.log('Line items:', JSON.stringify(session.line_items));
@@ -182,7 +180,6 @@ async function processPaymentSuccess(session, transporter) {
       
       if (hasDiyVepGuide) {
         console.log('Identified as DIY VEP Guide from line items');
-        identifiedFromLineItems = true;
         const fulfillmentResult = await fulfilDiyVepGuide(session, transporter);
         logFulfillment(fulfillmentResult);
         return fulfillmentResult;

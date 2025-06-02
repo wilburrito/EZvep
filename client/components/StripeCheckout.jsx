@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './StripeCheckout.css';
+import config from '../src/config'; // Import configuration
 
 /**
  * Stripe Checkout Button Component
@@ -37,7 +38,10 @@ const StripeCheckout = ({
       };
       
       // Call our backend API to create a Stripe checkout session
-      const response = await fetch('/api/create-checkout-session', {
+      const apiUrl = `${config.api.baseUrl}${config.api.endpoints.createCheckoutSession}`;
+      console.log('Making API request to:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

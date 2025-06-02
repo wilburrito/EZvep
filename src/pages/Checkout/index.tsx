@@ -107,14 +107,14 @@ const Checkout = () => {
       // Save customer info to session storage for persistence across redirects
       sessionStorage.setItem('customer_info', JSON.stringify(values));
       
-      // Try multiple API endpoints with different configurations
+      // For Vercel deployment, we should use the /api route which maps to serverless functions
+      // Try both absolute and relative URLs to ensure it works in all environments
       const apiEndpoints = [
-        'https://www.ezvep.com/api/create-checkout-session',
-        '/api/create-checkout-session', // Try relative URL
-        'https://www.ezvep.com/direct-api/create-checkout-session'
+        '/api/create-checkout-session', // Relative URL for same-origin requests (preferred)
+        'https://www.ezvep.com/api/create-checkout-session', // Absolute URL as backup
       ];
       
-      console.log('Will attempt payment with multiple endpoints:', apiEndpoints);
+      console.log('Will attempt payment with Stripe checkout endpoints');
       
       let response = null;
       let lastError = null;

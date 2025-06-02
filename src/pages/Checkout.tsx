@@ -52,7 +52,8 @@ const CheckoutPage = () => {
     try {
       console.log('Attempting payment with Stripe...');
       // Call our backend API to create a Stripe checkout session
-      const response = await fetch("https://www.ezvep.com/api/create-checkout-session", {
+      // Use relative URL for Vercel deployment to ensure it works correctly
+      const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

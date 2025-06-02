@@ -29,25 +29,41 @@ function setupEnvironmentVariables() {
   const dotenv = require('dotenv');
   dotenv.config(); // Load .env file variables
   
-  // Only use placeholder values if .env doesn't have the values
-  if (!process.env.STRIPE_SECRET_KEY) {
-    process.env.STRIPE_SECRET_KEY = stripeCredentials.secretKey;
-    console.log('Manually set STRIPE_SECRET_KEY');
+  // Check if env variables exist and are not placeholder values
+  const hasRealSecretKey = process.env.STRIPE_SECRET_KEY && 
+    !process.env.STRIPE_SECRET_KEY.includes('YOUR_') && 
+    process.env.STRIPE_SECRET_KEY !== 'sk_test_your_stripe_secret_key_here';
+    
+  const hasRealPublishableKey = process.env.STRIPE_PUBLISHABLE_KEY && 
+    !process.env.STRIPE_PUBLISHABLE_KEY.includes('YOUR_') && 
+    process.env.STRIPE_PUBLISHABLE_KEY !== 'pk_test_your_stripe_publishable_key_here';
+  
+  const hasRealWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET && 
+    !process.env.STRIPE_WEBHOOK_SECRET.includes('YOUR_') && 
+    process.env.STRIPE_WEBHOOK_SECRET !== 'whsec_your_stripe_webhook_secret_here';
+  
+  // Only use placeholder values if .env doesn't have real values
+  if (!hasRealSecretKey) {
+    console.log('WARNING: No valid STRIPE_SECRET_KEY found in environment. This will cause errors.');
+    console.log('Please add a valid STRIPE_SECRET_KEY to your .env file.');
   } else {
     console.log('Using STRIPE_SECRET_KEY from .env file');
+    // Log the first few and last few characters for verification
+    const key = process.env.STRIPE_SECRET_KEY;
+    console.log(`Key format: ${key.substring(0, 8)}...${key.substring(key.length - 5)}`);
   }
   
-  if (!process.env.STRIPE_PUBLISHABLE_KEY) {
-    process.env.STRIPE_PUBLISHABLE_KEY = stripeCredentials.publishableKey;
-    console.log('Manually set STRIPE_PUBLISHABLE_KEY');
+  if (!hasRealPublishableKey) {
+    console.log('WARNING: No valid STRIPE_PUBLISHABLE_KEY found in environment. This will cause errors.');
+    console.log('Please add a valid STRIPE_PUBLISHABLE_KEY to your .env file.');
   } else {
     console.log('Using STRIPE_PUBLISHABLE_KEY from .env file');
   }
   
-  if (!process.env.STRIPE_WEBHOOK_SECRET && stripeCredentials.webhookSecret) {
-    process.env.STRIPE_WEBHOOK_SECRET = stripeCredentials.webhookSecret;
-    console.log('Manually set STRIPE_WEBHOOK_SECRET');
-  } else if (process.env.STRIPE_WEBHOOK_SECRET) {
+  if (!hasRealWebhookSecret) {
+    console.log('WARNING: No valid STRIPE_WEBHOOK_SECRET found in environment.');
+    console.log('Webhook signature verification will fail without this key.');
+  } else {
     console.log('Using STRIPE_WEBHOOK_SECRET from .env file');
   }
   

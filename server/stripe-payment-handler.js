@@ -7,19 +7,84 @@
  * Based on: https://docs.stripe.com/checkout/quickstart?client=react&lang=node
  */
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 
-// Get manual environment setup
-const { setupEnvironmentVariables } = require('./manual-env-setup');
-setupEnvironmentVariables(); // Apply environment variables
+// DIRECT ENV FILE READING - Bypass environment variables completely
+const envPath = path.join(__dirname, '.env');
+console.log('Trying to read .env file directly from:', envPath);
 
-// Initialize Stripe with the secret key
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-if (!stripeSecretKey) {
-  console.error('ERROR: Stripe secret key is missing! Please check your environment variables.');
-  console.error('See instructions below for setting up your Stripe API keys');
+let stripeSecretKey = '';
+let stripePublishableKey = '';
+let stripeWebhookSecret = '';
+
+// Read the .env file directly
+try {
+  // Check if .env file exists
+  if (fs.existsSync(envPath)) {
+    console.log('.env file exists, reading contents directly...');
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    console.log('Successfully read .env file');
+    
+    // Parse .env file line by line
+    const envLines = envContent.split('\n');
+    for (const line of envLines) {
+      // Skip empty lines and comments
+      if (!line || line.startsWith('#')) continue;
+      
+      // Parse key=value pairs
+      const [key, value] = line.split('=');
+      if (key && value) {
+        const trimmedKey = key.trim();
+        const trimmedValue = value.trim();
+        
+        // Extract Stripe keys
+        if (trimmedKey === 'STRIPE_SECRET_KEY') {
+          stripeSecretKey = trimmedValue;
+          console.log('Found STRIPE_SECRET_KEY in .env file');
+        } else if (trimmedKey === 'STRIPE_PUBLISHABLE_KEY') {
+          stripePublishableKey = trimmedValue;
+          console.log('Found STRIPE_PUBLISHABLE_KEY in .env file');
+        } else if (trimmedKey === 'STRIPE_WEBHOOK_SECRET') {
+          stripeWebhookSecret = trimmedValue;
+          console.log('Found STRIPE_WEBHOOK_SECRET in .env file');
+        }
+      }
+    }
+  } else {
+    console.error('ERROR: .env file not found at path:', envPath);
+  }
+} catch (error) {
+  console.error('ERROR reading .env file:', error.message);
 }
 
-console.log('Initializing Stripe with key:', stripeSecretKey.substring(0, 8) + '...');
+// Enhanced debugging for Stripe key validation
+if (!stripeSecretKey) {
+  console.error('ERROR: Stripe secret key is missing! Please check your .env file.');
+  throw new Error('Stripe secret key is missing - cannot continue');
+} else if (stripeSecretKey.startsWith('YOUR_') || stripeSecretKey === 'sk_test_your_stripe_secret_key_here') {
+  console.error('ERROR: Using placeholder Stripe secret key! Please set a real API key.');
+  throw new Error('Invalid Stripe secret key format - cannot continue');
+}
+
+// Validate key format
+const isTestKey = stripeSecretKey.startsWith('sk_test_');
+const isLiveKey = stripeSecretKey.startsWith('sk_live_');
+
+if (!isTestKey && !isLiveKey) {
+  console.error('WARNING: Stripe secret key does not follow the expected format (sk_test_ or sk_live_).');
+  console.error('This may cause issues with the Stripe API.');
+}
+
+console.log('Initializing Stripe with', isLiveKey ? 'LIVE' : isTestKey ? 'TEST' : 'UNKNOWN', 'API key:', 
+  stripeSecretKey.substring(0, 7) + '...' + stripeSecretKey.substring(stripeSecretKey.length - 5));
+
+// Make the API keys available globally
+process.env.STRIPE_SECRET_KEY = stripeSecretKey;
+process.env.STRIPE_PUBLISHABLE_KEY = stripePublishableKey;
+process.env.STRIPE_WEBHOOK_SECRET = stripeWebhookSecret;
+  
+// Initialize the Stripe client with the API key
 const stripe = require('stripe')(stripeSecretKey);
 
 /**

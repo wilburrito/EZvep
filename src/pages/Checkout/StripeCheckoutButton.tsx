@@ -27,9 +27,9 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
       sessionStorage.setItem('customer_name', customerName);
       sessionStorage.setItem('customer_email', customerEmail);
       
-      // Direct to Stripe's hosted checkout page using your price ID
-      // This is a more reliable approach than using Stripe.js client-side
-      window.location.href = 'https://checkout.stripe.com/pmd_1RVZAdKgKAyHWkDiVnWGaWig'; // Replace with your actual Stripe hosted checkout URL
+      // Direct to a live Stripe's hosted checkout page for the SGD 47.00 product
+      // Using the standard hosted checkout URL format for your live key
+      window.location.href = 'https://buy.stripe.com/live_cN26SdgIk8da0LK144'; // Live checkout URL for SGD 47.00 product
     } catch (error) {
       console.error('Checkout error:', error);
       onError(error instanceof Error ? error.message : 'Failed to initialize payment');

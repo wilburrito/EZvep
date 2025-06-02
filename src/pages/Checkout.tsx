@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
+import StripeCheckoutButton from "./Checkout/StripeCheckoutButton";
 import "../styles/checkout.css";
 
 const CheckoutPage = () => {
@@ -147,53 +148,60 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          <div className="customer-info">
-            <h2>{t("Customer Information")}</h2>
-            <div className="form-group">
-              <label htmlFor="customerName">{t("Name")}:</label>
-              <input
-                type="text"
-                id="customerName"
-                className="form-input"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                required
-              />
+          <div className="checkout-form">
+            <div className="product-info">
+              <h3>DIY VEP Guide</h3>
+              <p className="price">SGD 47.00</p>
             </div>
-            <div className="form-group">
-              <label htmlFor="customerEmail">{t("Email")}:</label>
-              <input
-                type="email"
-                id="customerEmail"
-                className="form-input"
-                value={customerEmail}
-                onChange={(e) => setCustomerEmail(e.target.value)}
-                required
-              />
-            </div>
-          </div>
 
-          {error && (
-            <div className="error-message">
-              {error}
+            <div className="customer-info">
+              <h3>Customer Information</h3>
+              <form>
+                <div className="form-group">
+                  <label htmlFor="name">Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="email">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </form>
             </div>
-          )}
 
-          <div className="button-group">
+            {error && <div className="error-message">{error}</div>}
+
+            {/* Primary checkout button using the server API */}
             <button
               className="checkout-button"
               onClick={handlePayment}
-              disabled={loading}
+              disabled={loading || !customerName || !customerEmail}
             >
-              {loading ? (
-                <>
-                  <div className="spinner"></div>
-                  {t("Processing...")}
-                </>
-              ) : (
-                t("Proceed to Payment")
-              )}
+              {loading ? t("Processing...") : t("Proceed to Payment")}
             </button>
+            
+            {error && (
+              <div className="fallback-checkout">
+                <p>{t("Having trouble with our payment system?")}</p>
+                <StripeCheckoutButton
+                  customerName={customerName}
+                  customerEmail={customerEmail}
+                  isLoading={loading}
+                  onError={(message) => setError(message)}
+                />
+              </div>
+            )}
             <button
               className="cancel-button"
               onClick={() => history.push("/")}

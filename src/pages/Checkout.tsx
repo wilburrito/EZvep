@@ -51,7 +51,7 @@ const CheckoutPage = () => {
 
     try {
       // Call our backend API to create a Stripe checkout session
-      const response = await fetch("http://localhost:3001/api/create-checkout-session", {
+      const response = await fetch("http://www.ezvep.com/api/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

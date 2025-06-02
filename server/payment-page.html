@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EZVEP Payment</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .payment-container {
+      max-width: 600px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    .payment-header {
+      background-color: #4f46e5;
+      color: white;
+      padding: 20px 30px;
+    }
+    .payment-header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .payment-content {
+      padding: 30px;
+    }
+    .order-summary {
+      margin-bottom: 25px;
+      border-bottom: 1px solid #eaeaea;
+      padding-bottom: 20px;
+    }
+    .order-summary h2 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #333;
+    }
+    .order-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    .order-info .label {
+      color: #666;
+    }
+    .order-info .value {
+      font-weight: 600;
+      color: #333;
+    }
+    .payment-form {
+      margin-bottom: 20px;
+    }
+    .form-row {
+      margin-bottom: 20px;
+    }
+    .form-row label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 16px;
+      color: #333;
+    }
+    #payment-element {
+      margin: 20px 0;
+      min-height: 250px;
+    }
+    .button-container {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .payment-button {
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .payment-button:hover {
+      background-color: #4338ca;
+    }
+    .payment-button:disabled {
+      background-color: #a5a5a5;
+      cursor: not-allowed;
+    }
+    .status-message {
+      margin-top: 15px;
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 14px;
+      display: none;
+    }
+    .status-message.error {
+      background-color: #fee2e2;
+      color: #ef4444;
+      border: 1px solid #ef4444;
+    }
+    .status-message.success {
+      background-color: #dcfce7;
+      color: #10b981;
+      border: 1px solid #10b981;
+    }
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="payment-container">
+    <div class="payment-header">
+      <h1>Complete Your Payment</h1>
+    </div>
+    <div class="payment-content">
+      <div class="order-summary">
+        <h2>Order Summary</h2>
+        <div class="order-info">
+          <span class="label">Order ID:</span>
+          <span class="value" id="order-id">...</span>
+        </div>
+        <div class="order-info">
+          <span class="label">Amount:</span>
+          <span class="value" id="amount">...</span>
+        </div>
+      </div>
+
+      <div class="payment-form">
+        <h2>Payment Details</h2>
+        <div id="payment-element">
+          <!-- Airwallex Drop-in will be injected here -->
+          <div style="text-align: center; padding: 20px;">
+            Loading payment form...
+          </div>
+        </div>
+        <div id="status-message" class="status-message"></div>
+      </div>
+      
+      <div class="button-container">
+        <button id="confirm-button" class="payment-button" disabled>
+          <span id="button-text">Pay Now</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Airwallex JavaScript SDK -->
+  <script src="https://checkout.airwallex.com/assets/elements.bundle.min.js"></script>
+  <script>
+    // Helper function to get user-friendly error messages
+    function getErrorMessage(error) {
+      // Common Airwallex error codes and messages
+      if (error.code) {
+        switch (error.code) {
+          case 'invalid_request_error':
+            return 'The payment request was invalid. Please check your card details.';
+          case 'payment_intent_authentication_failure':
+            return 'Card authentication failed. Please try again with a different card.';
+          case 'insufficient_funds':
+            return 'Insufficient funds in your account. Please try a different card.';
+          case 'card_decline':
+            return 'Your card was declined. Please try a different payment method.';
+          case 'expired_card':
+            return 'Your card has expired. Please use a different card.';
+          case 'processing_error':
+            return 'There was an error processing your card. Please try again.';
+          default:
+            return `Payment error: ${error.message || error.code || 'Unknown error'}`;
+        }
+      }
+      
+      // Return a generic message if no specific error code
+      return error.message || 'Payment failed. Please try again.';
+    }
+    
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const intentId = urlParams.get('intent_id');
+    const clientSecret = urlParams.get('client_secret');
+    const amount = urlParams.get('amount') || '47.00';
+    const currency = urlParams.get('currency') || 'SGD';
+    const orderId = urlParams.get('order_id') || 'Unknown';
+    const returnUrl = urlParams.get('return_url') || 'http://localhost:3000/payment-success';
+
+    // Display order information
+    document.getElementById('order-id').textContent = orderId;
+    document.getElementById('amount').textContent = `${currency} ${parseFloat(amount).toFixed(2)}`;
+    
+    // Status management
+    const statusMessage = document.getElementById('status-message');
+    const confirmButton = document.getElementById('confirm-button');
+    const buttonText = document.getElementById('button-text');
+    
+    function showError(errorMessage) {
+      statusMessage.textContent = errorMessage;
+      statusMessage.className = 'status-message error';
+      statusMessage.style.display = 'block';
+      confirmButton.disabled = false;
+      buttonText.textContent = 'Try Again';
+    }
+    
+    function showLoading() {
+      confirmButton.disabled = true;
+      buttonText.innerHTML = '<div class="loading"></div> Processing...';
+    }
+    
+    // Initialize Airwallex
+    if (!intentId || !clientSecret) {
+      showError('Missing payment information. Please try again.');
+    } else {
+      // Execute immediately or wait for DOM content loaded
+      const initAirwallex = async () => {
+        try {
+          // Initialize Airwallex instance
+          const Airwallex = window.Airwallex;
+          
+          // Configure Airwallex
+          Airwallex.init({
+            env: 'demo', // Change to 'prod' for production
+            locale: 'en',
+            origin: window.location.origin,
+          });
+          
+          // Create a payment method element (card) instead of drop-in
+          const card = Airwallex.createElement('card', {
+            intent_id: intentId,
+            client_secret: clientSecret,
+          });
+          
+          // Mount the card element
+          await card.mount('payment-element');
+          
+          // Enable the confirm button after loading
+          confirmButton.disabled = false;
+          
+          // Handle payment submission
+          confirmButton.addEventListener('click', async () => {
+            showLoading();
+            
+            try {
+              // First verify the card is complete
+              const isCardComplete = await card.isComplete();
+              if (!isCardComplete) {
+                showError('Please fill in all card details');
+                return;
+              }
+              
+              console.log('Confirming payment with intent ID:', intentId);
+              
+              // Debug the intent ID and client secret (masking part of client secret)
+              const maskedSecret = clientSecret ? clientSecret.substring(0, 5) + '...' + clientSecret.substring(clientSecret.length - 5) : 'missing';
+              console.log(`Intent ID: ${intentId}, Client Secret: ${maskedSecret}`);
+              
+              // Use the global Airwallex object to confirm payment
+              const response = await Airwallex.confirmPaymentIntent({
+                intent_id: intentId,
+                client_secret: clientSecret,
+                payment_method: {
+                  card: card
+                }
+              });
+              
+              // Log the full response for debugging
+              console.log('Payment response:', JSON.stringify(response, null, 2));
+              
+              // If payment successful, redirect to success page
+              if (response && response.status === 'SUCCESS') {
+                console.log('Payment successful! Redirecting to:', returnUrl);
+                window.location.href = `${returnUrl}?payment_intent_id=${intentId}`;
+              } else {
+                const status = response?.status || 'failed';
+                const reason = response?.failure_reason || 'unknown reason';
+                console.error(`Payment ${status.toLowerCase()}: ${reason}`);
+                showError(`Payment ${status.toLowerCase()}: ${reason}. Please try again.`);
+              }
+            } catch (err) {
+              // Log detailed error information
+              console.error('Payment error:', err);
+              console.error('Error details:', JSON.stringify({
+                message: err.message,
+                code: err.code,
+                type: err.type,
+                stack: err.stack
+              }, null, 2));
+              
+              // Display a more helpful error message
+              const errorMessage = getErrorMessage(err);
+              showError(errorMessage);
+            }
+          });
+        } catch (error) {
+          console.error('Error initializing Airwallex:', error);
+          showError('Failed to load the payment form. Please refresh the page or try again later.');
+        }
+      };
+      
+      // Run initialization either when DOM is ready or immediately if already loaded
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAirwallex);
+      } else {
+        initAirwallex();
+      }
+    }
+  </script>
+</body>
+</html>

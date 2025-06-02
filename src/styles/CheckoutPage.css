@@ -1,0 +1,54 @@
+.checkout-page {
+  padding: 40px 0;
+}
+
+.checkout-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  margin-bottom: 32px;
+}
+
+.checkout-card h1 {
+  color: #2e186a;
+  margin-bottom: 24px;
+}
+
+.checkout-card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.order-summary,
+.customer-info {
+  margin-bottom: 24px;
+}
+
+.checkout-button {
+  background-color: #4F46E5;
+  border-color: #4F46E5;
+  transition: all 0.3s ease;
+  padding: 12px 24px;
+}
+
+.checkout-button:hover {
+  background-color: #4338CA;
+  border-color: #4338CA;
+  transform: translateY(-2px);
+}
+
+.checkout-button:active {
+  transform: translateY(0);
+}
+
+.alert {
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .checkout-card {
+    padding: 20px;
+  }
+}

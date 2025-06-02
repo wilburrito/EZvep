@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airwallex Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            color: #2e186a;
+            text-align: center;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #2e186a;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        button {
+            background-color: #2e186a;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #3a1f91;
+        }
+        pre {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 300px;
+        }
+        .status-box {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .success {
+            background-color: #e6ffe6;
+            border: 1px solid #b3ffb3;
+        }
+        .error {
+            background-color: #ffe6e6;
+            border: 1px solid #ffb3b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Airwallex Integration Test</h1>
+    
+    <div class="card">
+        <h2>Instructions</h2>
+        <p>This page allows you to test the Airwallex integration directly without requiring a local server.</p>
+        <p>Click the "Run Node.js Script" button below to execute a script that will test the Airwallex integration and display the results here.</p>
+    </div>
+    
+    <div class="card">
+        <h2>Direct API Test</h2>
+        <button id="runTest">Run Node.js Script</button>
+        <button id="stopTest">Stop Test</button>
+        <div id="statusBox" class="status-box"></div>
+        <h3>Output:</h3>
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+        document.getElementById('runTest').addEventListener('click', async () => {
+            const outputEl = document.getElementById('output');
+            const statusEl = document.getElementById('statusBox');
+            
+            outputEl.textContent = 'Starting test script...\n';
+            statusEl.className = 'status-box';
+            statusEl.textContent = 'Running test...';
+            
+            try {
+                // Create a unique filename for this test run
+                const timestamp = new Date().getTime();
+                const testFilename = `airwallex-browser-test-${timestamp}.js`;
+                
+                // Create the test script
+                outputEl.textContent += `Creating test script ${testFilename}...\n`;
+                
+                // This script content will be executed directly via Node.js
+                const scriptContent = `
+// Direct test for Airwallex integration
+require('dotenv').config();
+const { 
+  initializeAirwallex, 
+  createPaymentIntent, 
+  getPaymentIntent, 
+  createMockPaymentIntent 
+} = require('./airwallex-integration');
+
+console.log('=== DIRECT AIRWALLEX INTEGRATION TEST ===');
+console.log('Testing Airwallex integration directly...');
+
+async function testAirwallexIntegration() {
+  try {
+    // Initialize Airwallex SDK
+    console.log('Initializing Airwallex SDK...');
+    const airwallex = initializeAirwallex();
+    
+    if (!airwallex) {
+      console.log('❌ Failed to initialize Airwallex SDK');
+      return false;
+    }
+    
+    console.log('✅ Successfully initialized Airwallex SDK');
+    
+    // Create a test payment intent
+    const crypto = require('crypto');
+    const orderID = \`order_\${crypto.randomBytes(8).toString('hex')}\`;
+    const requestID = \`req_\${crypto.randomBytes(8).toString('hex')}\`;
+    
+    const testPayload = {
+      amount: 1.00,
+      currency: 'SGD',
+      merchant_order_id: orderID,
+      descriptor: 'EZVEP Test',
+      return_url: \`http://localhost:3000/payment-success\`,
+      expired_time: Math.floor(Date.now() / 1000) + 3600,
+      metadata: {
+        customer_name: 'Test User',
+        customer_email: 'test@example.com'
+      },
+      request_id: requestID,
+      order: {
+        products: [
+          {
+            name: 'Test Product',
+            quantity: 1,
+            price: 1.00,
+            currency: 'SGD',
+            sku: 'TEST-SKU-01'
+          }
+        ]
+      }
+    };
+    
+    console.log('Creating test payment intent...');
+    console.log('Payload:', JSON.stringify(testPayload, null, 2));
+    
+    try {
+      const paymentIntent = await createPaymentIntent(airwallex, testPayload);
+      
+      console.log('✅ Successfully created payment intent!');
+      console.log('Payment Intent ID:', paymentIntent.id);
+      console.log('Client Secret:', paymentIntent.client_secret);
+      
+      // Now try to retrieve the payment intent
+      console.log('\\nRetrieving payment intent...');
+      const retrievedIntent = await getPaymentIntent(airwallex, paymentIntent.id);
+      
+      console.log('✅ Successfully retrieved payment intent!');
+      console.log('Payment Intent Status:', retrievedIntent.status);
+      
+      return true;
+    } catch (apiError) {
+      console.error('❌ Failed to create payment intent:', apiError.message);
+      
+      console.log('\\nTrying fallback mock payment intent...');
+      const mockPaymentIntent = createMockPaymentIntent();
+      
+      console.log('Mock payment intent created:');
+      console.log('ID:', mockPaymentIntent.id);
+      console.log('Client Secret:', mockPaymentIntent.client_secret);
+      
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Error in Airwallex integration test:', error);
+    return false;
+  }
+}
+
+// Run the test
+testAirwallexIntegration()
+  .then(success => {
+    console.log('\\n=== TEST RESULT ===');
+    if (success) {
+      console.log('✅ Airwallex integration is working properly');
+    } else {
+      console.log('❌ Airwallex integration test failed');
+    }
+    process.exit(0);
+  })
+  .catch(err => {
+    console.error('\\n=== TEST FAILED WITH ERROR ===');
+    console.error(err);
+    process.exit(1);
+  });
+`;
+                
+                // Create a test file with the script content
+                const createFileRequest = await fetch('/write-test-file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: testFilename, content: scriptContent })
+                });
+                
+                if (!createFileRequest.ok) {
+                    throw new Error(`Failed to create test file: ${await createFileRequest.text()}`);
+                }
+                
+                outputEl.textContent += 'Test script created successfully.\n';
+                outputEl.textContent += 'Running Node.js script...\n\n';
+                
+                // Execute the test script
+                const executeRequest = await fetch('/execute-test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: testFilename })
+                });
+                
+                if (!executeRequest.ok) {
+                    throw new Error(`Failed to execute test: ${await executeRequest.text()}`);
+                }
+                
+                const result = await executeRequest.json();
+                
+                // Display the result
+                outputEl.textContent += result.output;
+                
+                if (result.success) {
+                    statusEl.className = 'status-box success';
+                    statusEl.textContent = '✅ Test completed successfully!';
+                } else {
+                    statusEl.className = 'status-box error';
+                    statusEl.textContent = '❌ Test failed. See output for details.';
+                }
+                
+            } catch (error) {
+                outputEl.textContent += `\nError: ${error.message}\n`;
+                statusEl.className = 'status-box error';
+                statusEl.textContent = '❌ Test failed with an error';
+            }
+        });
+        
+        document.getElementById('stopTest').addEventListener('click', () => {
+            fetch('/stop-test', { method: 'POST' })
+                .then(response => response.text())
+                .then(result => {
+                    const outputEl = document.getElementById('output');
+                    outputEl.textContent += `\n${result}\n`;
+                })
+                .catch(error => {
+                    console.error('Error stopping test:', error);
+                });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+.stripe-checkout-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.checkout-button {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #6772e5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.checkout-button:hover {
+  background-color: #5469d4;
+}
+
+.checkout-button:disabled {
+  background-color: #b7b7b7;
+  cursor: not-allowed;
+}
+
+.checkout-error {
+  margin-top: 10px;
+  padding: 8px 12px;
+  color: #e25950;
+  background-color: #ffefef;
+  border: 1px solid #e25950;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.checkout-secure-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.checkout-secure-badge svg {
+  color: #10b981;
+}

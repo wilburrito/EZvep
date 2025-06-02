@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Row, Col, Drawer } from "antd";
 import { withTranslation, TFunction } from "react-i18next";
+import { useHistory, useLocation } from "react-router-dom";
 import Container from "../../common/Container";
 import { SvgIcon } from "../../common/SvgIcon";
 import { Button } from "../../common/Button";
-// import { Link } from "react-router-dom";
 import {
   HeaderSection,
   LogoContainer,
@@ -17,6 +17,8 @@ import {
 } from "./styles";
 
 const Header = ({ t }: { t: TFunction }) => {
+  const history = useHistory();
+  const location = useLocation();
   const [visible, setVisibility] = useState(false);
 
   const toggleButton = () => {
@@ -25,10 +27,27 @@ const Header = ({ t }: { t: TFunction }) => {
 
   const MenuItem = () => {
     const scrollTo = (id: string) => {
-      const element = document.getElementById(id) as HTMLDivElement;
-      element.scrollIntoView({
-        behavior: "smooth",
-      });
+      // If we're not on the home page, navigate to home first
+      if (location.pathname !== '/' && location.pathname !== '/home') {
+        history.push('/');
+        // We'll need to wait for the home page to load before scrolling
+        setTimeout(() => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.scrollIntoView({
+              behavior: "smooth",
+            });
+          }
+        }, 500);
+      } else {
+        // We're on the home page, try to scroll
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+          });
+        }
+      }
       setVisibility(false);
     };
     return (

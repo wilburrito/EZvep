@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EZVEP Stripe Payment Test</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+    }
+    h1 {
+      color: #4f46e5;
+      margin-top: 0;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #4338ca;
+    }
+    .result-container {
+      margin-top: 30px;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+    .payment-url {
+      word-break: break-all;
+      padding: 15px;
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .payment-link {
+      display: inline-block;
+      margin: 15px 0;
+      padding: 10px 16px;
+      background-color: #22c55e;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .error {
+      color: #ef4444;
+      padding: 10px;
+      background-color: #fee2e2;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>EZVEP Stripe Payment Test</h1>
+    <p>Use this form to test the Stripe payment integration.</p>
+    
+    <div class="form-group">
+      <label for="amount">Amount</label>
+      <input type="number" id="amount" value="29.99" step="0.01" min="1">
+    </div>
+    
+    <div class="form-group">
+      <label for="currency">Currency</label>
+      <select id="currency">
+        <option value="SGD">SGD - US Dollar</option>
+        <option value="eur">EUR - Euro</option>
+        <option value="gbp">GBP - British Pound</option>
+        <option value="aud">AUD - Australian Dollar</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="productName">Product Name</label>
+      <input type="text" id="productName" value="DIY VEP E-Guide">
+    </div>
+    
+    <div class="form-group">
+      <label for="description">Description</label>
+      <input type="text" id="description" value="Step-by-step guide for DIY Visa Extension Pass application">
+    </div>
+    
+    <div class="form-group">
+      <label for="customerName">Customer Name</label>
+      <input type="text" id="customerName" value="Test Customer">
+    </div>
+    
+    <div class="form-group">
+      <label for="customerEmail">Customer Email</label>
+      <input type="email" id="customerEmail" value="test@example.com">
+    </div>
+    
+    <button id="createCheckoutBtn">Create Checkout Session</button>
+    
+    <div class="result-container" id="resultContainer" style="display: none;">
+      <h2>Checkout Session Created</h2>
+      <p>Your Stripe checkout session has been created. Click the button below to proceed to payment.</p>
+      
+      <div id="paymentUrl" class="payment-url"></div>
+      
+      <a href="#" id="paymentLink" class="payment-link" target="_blank">Proceed to Payment</a>
+    </div>
+    
+    <div id="errorContainer" class="error" style="display: none;"></div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const createCheckoutBtn = document.getElementById('createCheckoutBtn');
+      const resultContainer = document.getElementById('resultContainer');
+      const paymentUrlEl = document.getElementById('paymentUrl');
+      const paymentLinkEl = document.getElementById('paymentLink');
+      const errorContainer = document.getElementById('errorContainer');
+      
+      createCheckoutBtn.addEventListener('click', async function() {
+        // Clear previous results
+        resultContainer.style.display = 'none';
+        errorContainer.style.display = 'none';
+        
+        // Get form values
+        const amount = document.getElementById('amount').value;
+        const currency = document.getElementById('currency').value;
+        const productName = document.getElementById('productName').value;
+        
+        // Validate input
+        if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+          showError('Please enter a valid amount greater than 0');
+          return;
+        }
+        
+        try {
+          // Get customer info
+          const customerName = document.getElementById('customerName').value;
+          const customerEmail = document.getElementById('customerEmail').value;
+          const description = document.getElementById('description').value;
+          
+          // Create checkout session
+          const response = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              amount,
+              currency,
+              productName,
+              description,
+              customerName,
+              customerEmail,
+              successUrl: window.location.origin + '/payment-success?session_id={CHECKOUT_SESSION_ID}',
+              cancelUrl: window.location.origin + '/payment-cancel',
+              metadata: {
+                source: 'test_page'
+              }
+            })
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create checkout session');
+          }
+          
+          const data = await response.json();
+          
+          // Display results
+          paymentUrlEl.textContent = data.url;
+          paymentLinkEl.href = data.url;
+          resultContainer.style.display = 'block';
+          
+          // Optional: Automatically redirect to payment page
+          // window.location.href = data.url;
+        } catch (error) {
+          showError(error.message || 'An error occurred while creating the checkout session');
+        }
+      });
+      
+      function showError(message) {
+        errorContainer.textContent = message;
+        errorContainer.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

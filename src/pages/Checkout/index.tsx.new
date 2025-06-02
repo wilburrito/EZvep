@@ -1,0 +1,630 @@
+import { useState, useEffect, useRef } from "react";
+import { Row, Col, Form, Input, Steps, message, Spin } from "antd";
+import { Fade } from "react-awesome-reveal";
+import { withTranslation } from "react-i18next";
+import styled from "styled-components";
+import { useHistory } from "react-router-dom";
+import axios from "axios";
+import SvgIcon from "../../components/SvgIcon";
+import { Card, Button } from "../../common/Button";
+import { Container } from "../../common/Container";
+
+// Add window.Airwallex type for TypeScript
+declare global {
+  interface Window {
+    Airwallex: any;
+  }
+}
+
+const { Step } = Steps;
+
+const CheckoutContainer = styled("div")`
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2.5rem 0;
+`;
+
+const Title = styled("h1")`
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+`;
+
+const StepsContainer = styled("div")`
+  margin-bottom: 2rem;
+`;
+
+const SectionTitle = styled("h2")`
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+`;
+
+const ButtonContainer = styled("div")`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+`;
+
+const SuccessContainer = styled("div")`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  
+  h2 {
+    margin: 1.5rem 0 1rem;
+    font-size: 1.8rem;
+  }
+  
+  p {
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    color: #555;
+    max-width: 500px;
+  }
+`;
+
+const SummaryItem = styled("div")`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const Total = styled("div")`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid #eee;
+  font-weight: bold;
+  font-size: 1.2rem;
+`;
+
+const LoadingContainer = styled("div")`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  
+  p {
+    margin-top: 1rem;
+    color: #666;
+  }
+`;
+
+const TwoColumnLayout = styled("div")`
+  display: flex;
+  gap: 40px;
+  
+  @media only screen and (max-width: 992px) {
+    flex-direction: column;
+  }
+`;
+
+const SummaryColumn = styled("div")`
+  flex: 1;
+`;
+
+const PaymentColumn = styled("div")`
+  flex: 1.5;
+`;
+
+const ProductImage = styled("img")`
+  width: 100px;
+  height: 130px;
+  object-fit: cover;
+  margin-right: 20px;
+`;
+
+const ProductDetails = styled("div")`
+  display: flex;
+  margin-bottom: 20px;
+`;
+
+const ProductInfo = styled("div")`
+  flex: 1;
+`;
+
+const ProductTitle = styled("h3")`
+  font-size: 16px;
+  margin: 0 0 8px 0;
+  font-weight: 500;
+`;
+
+const CardInfoTitle = styled("h2")`
+  font-size: 18px;
+  margin-bottom: 20px;
+  font-weight: 500;
+`;
+
+const AirwallexContainer = styled("div")`
+  margin-top: 1rem;
+  width: 100%;
+`;
+
+// These styled components will be used if we need to display payment method icons
+
+const Checkout = ({ t }: { t: any }) => {
+  const [form] = Form.useForm();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [paymentIntentInfo, setPaymentIntentInfo] = useState<{ clientSecret: string, intentId: string } | null>(null);
+  const [airwallexReady, setAirwallexReady] = useState(false);
+  const [dropInMounted, setDropInMounted] = useState(false);
+  const history = useHistory();
+  const dropInContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Check if Airwallex is available
+  const checkAirwallexAvailability = () => {
+    if (window.Airwallex) {
+      setAirwallexReady(true);
+    } else {
+      const interval = setInterval(() => {
+        if (window.Airwallex) {
+          setAirwallexReady(true);
+          clearInterval(interval);
+        }
+      }, 500);
+    }
+  };
+  
+  useEffect(() => {
+    checkAirwallexAvailability();
+    
+    // Cleanup on unmount
+    return () => {
+      // If there's an Airwallex element mounted, clean it up
+      if (window.Airwallex && dropInMounted) {
+        try {
+          window.Airwallex.destroyElement('dropIn');
+        } catch (error) {
+          console.error("Error destroying Airwallex element:", error);
+        }
+      }
+    };
+  }, [dropInMounted]);
+  
+  useEffect(() => {
+    // Only attempt to mount the Drop-in Element when on the payment step (step 1)
+    // and after payment intent is created and Airwallex SDK is ready
+    if (currentStep === 1 && airwallexReady && paymentIntentInfo && dropInContainerRef.current && !dropInMounted) {
+      try {
+        // Initialize the Airwallex global to prepare for Drop-in Element
+        const airwallex = window.Airwallex.createElement({
+          env: process.env.REACT_APP_AIRWALLEX_ENV || 'demo',
+        });
+        
+        // Mount the Drop-in Element to the container
+        airwallex.createDropIn({
+          // Required parameters
+          element: dropInContainerRef.current,
+          mode: 'payment', // Always use 'payment' for the Drop-in Element
+          client_secret: paymentIntentInfo.clientSecret,
+          
+          // Optional styling customization
+          style: {
+            // Base styles apply to all elements
+            base: {
+              backgroundColor: '#fff',
+              color: '#333',
+              fontSize: '16px',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              '::placeholder': {
+                color: '#aab7c4',
+              },
+            },
+            // Styles for the submit button
+            button: {
+              backgroundColor: '#1890ff',
+              color: '#fff',
+              fontSize: '16px',
+              fontWeight: '600',
+              borderRadius: '4px',
+              border: 'none',
+              padding: '12px 16px',
+              marginTop: '16px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              ':hover': {
+                backgroundColor: '#40a9ff',
+              },
+              ':active': {
+                backgroundColor: '#096dd9',
+              },
+              ':focus': {
+                outline: 'none',
+              },
+            }
+          },
+          
+          // Payment complete callback
+          onSuccess: (evt: any) => {
+            // Get form values for customer information
+            const formValues = form.getFieldsValue();
+            handlePaymentSuccess(formValues, paymentIntentInfo.intentId);
+          },
+          
+          // Payment error callback
+          onError: (evt: any) => {
+            message.error("Payment failed: " + (evt.message || "Please try again."));
+            setIsLoading(false);
+          },
+          
+          // User canceled callback
+          onCancel: () => {
+            message.info("Payment canceled");
+            setIsLoading(false);
+          },
+        });
+        
+        setDropInMounted(true);
+      } catch (error) {
+        console.error("Error mounting Airwallex Drop-in Element:", error);
+        message.error("Failed to load payment form. Please try again.");
+      }
+    }
+  }, [currentStep, airwallexReady, paymentIntentInfo, dropInMounted, form]);
+  
+  const nextStep = () => {
+    // For step 0 (customer info), validate the form first
+    if (currentStep === 0) {
+      form.validateFields(['firstName', 'lastName', 'email'])
+        .then(values => {
+          setCurrentStep(currentStep + 1);
+          
+          // When moving to payment step, create the payment intent
+          if (currentStep === 0) {
+            createPaymentIntent(values);
+          }
+        })
+        .catch(err => {
+          console.error("Validation failed:", err);
+          message.error("Please fill in all required fields");
+        });
+    } else {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+  
+  // Create payment intent with Airwallex
+  const createPaymentIntent = async (formValues: any) => {
+    setIsLoading(true);
+    
+    try {
+      // Create the customer info object from form values
+      const customerInfo = {
+        name: `${formValues.firstName} ${formValues.lastName}`,
+        email: formValues.email,
+        phone: formValues.phone || ''
+      };
+      
+      // Call the backend to create a payment intent
+      const response = await axios.post('/api/create-payment-intent', {
+        amount: 47.00, // Replace with actual amount calculation
+        currency: 'SGD',
+        customerInfo
+      });
+      
+      // Store the payment intent info for the Drop-in Element
+      setPaymentIntentInfo({
+        clientSecret: response.data.client_secret,
+        intentId: response.data.id
+      });
+      
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      message.error("Failed to initialize payment. Please try again.");
+      setIsLoading(false);
+    }
+  };
+  
+  const prevStep = () => {
+    setCurrentStep(currentStep - 1);
+  };
+
+  // Handle successful payment from Airwallex Drop-in Element
+  const handlePaymentSuccess = async (formValues: any, paymentIntentId: string) => {
+    setIsLoading(true);
+    
+    try {
+      // Construct the customer information for the backend
+      const customerInfo = {
+        name: `${formValues.firstName} ${formValues.lastName}`,
+        email: formValues.email,
+        phone: formValues.phone || ''
+      };
+      
+      // Call the backend to confirm the payment and send email
+      await axios.post('/api/confirm-payment', {
+        paymentIntentId,
+        customerInfo
+      });
+      
+      // Update UI to show success
+      setIsSuccess(true);
+      setIsLoading(false);
+      
+      // Reset form and steps
+      form.resetFields();
+      
+      // Send analytics event for successful purchase
+      if (window.gtag) {
+        window.gtag('event', 'purchase', {
+          transaction_id: paymentIntentId,
+          value: 47.00,
+          currency: 'SGD',
+          items: [{ name: 'DIY VEP E-Guide', quantity: 1, price: 47.00 }]
+        });
+      }
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      message.error("Payment was successful but we couldn't complete your order. Please contact support.");
+      setIsLoading(false);
+    }
+  };
+  
+  // Form submission handler
+  const onFinish = (values: any) => {
+    // This will be called when the form is submitted on step 2 (review)
+    setIsLoading(true);
+    
+    // If we're on the confirmation step and already have payment intent,
+    // just proceed to success
+    if (currentStep === 2 && paymentIntentInfo) {
+      setTimeout(() => {
+        setIsSuccess(true);
+        setIsLoading(false);
+      }, 1500);
+    } else {
+      setIsLoading(false);
+    }
+  };
+
+  if (isSuccess) {
+    return (
+      <Container>
+        <CheckoutContainer>
+          <Fade direction="up" triggerOnce>
+            <SuccessContainer>
+              <SvgIcon src="check-circle.svg" width="80px" height="80px" />
+              <h2>Thank You for Your Purchase!</h2>
+              <p>Your DIY VEP E-Guide has been sent to your email. Check your inbox (and spam folder) for instructions on how to access your guide.</p>
+              <Button onClick={() => history.push("/")}>
+                Return to Home
+              </Button>
+            </SuccessContainer>
+          </Fade>
+        </CheckoutContainer>
+      </Container>
+    );
+  }
+
+  // For steps 0 and 2, use the original layout
+  if (currentStep === 0) {
+    return (
+      <Container>
+        <CheckoutContainer>
+          <Fade direction="up" triggerOnce>
+            <Title>Checkout - DIY VEP E-Guide</Title>
+            
+            <StepsContainer>
+              <Steps current={currentStep}>
+                <Step title="Your Details" />
+                <Step title="Payment" />
+                <Step title="Confirmation" />
+              </Steps>
+            </StepsContainer>
+            
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={onFinish}
+              initialValues={{ paymentMethod: "credit" }}
+            >
+              <Card>
+                <SectionTitle>Your Information</SectionTitle>
+                <Row gutter={24}>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="firstName"
+                      label="First Name"
+                      rules={[{ required: true, message: "Please enter your first name" }]}
+                    >
+                      <Input placeholder="First Name" />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="lastName"
+                      label="Last Name"
+                      rules={[{ required: true, message: "Please enter your last name" }]}
+                    >
+                      <Input placeholder="Last Name" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Form.Item
+                  name="email"
+                  label="Email Address"
+                  rules={[
+                    { required: true, message: "Please enter your email" },
+                    { type: "email", message: "Please enter a valid email" }
+                  ]}
+                >
+                  <Input placeholder="Email Address" />
+                </Form.Item>
+                <Form.Item
+                  name="phone"
+                  label="Phone Number (optional)"
+                >
+                  <Input placeholder="Phone Number" />
+                </Form.Item>
+                
+                <ButtonContainer>
+                  <div></div> {/* Empty div for spacing */}
+                  <Button onClick={nextStep}>
+                    Continue to Payment
+                  </Button>
+                </ButtonContainer>
+              </Card>
+            </Form>
+          </Fade>
+        </CheckoutContainer>
+      </Container>
+    );
+  }
+  
+  // For step 1 (payment), use the two-column layout that matches the Airwallex demo store
+  if (currentStep === 1) {
+    return (
+      <Container>
+        <CheckoutContainer>
+          <Fade direction="up" triggerOnce>
+            <Title style={{ fontWeight: 500, color: '#333', fontSize: '24px', marginBottom: '40px' }}>Summary</Title>
+            
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={onFinish}
+            >
+              <TwoColumnLayout>
+                {/* Left Column - Order Summary */}
+                <SummaryColumn>
+                  <ProductDetails>
+                    <ProductImage src="/img/svg/guidebook.jpg" alt="DIY VEP E-Guide" />
+                    <ProductInfo>
+                      <ProductTitle>Your Passport to Global Business</ProductTitle>
+                      <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
+                        Comprehensive DIY guide for your VEP application
+                      </div>
+                    </ProductInfo>
+                  </ProductDetails>
+                  
+                  <SummaryItem>
+                    <span>Subtotal</span>
+                    <span>$47.00</span>
+                  </SummaryItem>
+                  <SummaryItem>
+                    <span>Shipping</span>
+                    <span>$0</span>
+                  </SummaryItem>
+                  <Total>
+                    <span>Total</span>
+                    <span>$47.00</span>
+                  </Total>
+                </SummaryColumn>
+                
+                {/* Right Column - Payment Form */}
+                <PaymentColumn>
+                  <CardInfoTitle>Card information</CardInfoTitle>
+                  <AirwallexContainer ref={dropInContainerRef}>
+                    {isLoading && (
+                      <LoadingContainer>
+                        <Spin size="large" />
+                        <p>Loading payment system...</p>
+                      </LoadingContainer>
+                    )}
+                  </AirwallexContainer>
+                  
+                  <div style={{ fontSize: '0.85rem', marginTop: '1.5rem', color: '#666' }}>
+                    Your card information is securely processed by Airwallex.
+                  </div>
+                  
+                  {/* Demo card info box (like in the screenshot) */}
+                  {!isLoading && (
+                    <div style={{ 
+                      marginTop: '24px', 
+                      padding: '16px', 
+                      backgroundColor: '#f9f9fb',
+                      borderRadius: '8px',
+                      border: '1px solid #eee'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                        <SvgIcon src="credit-card.svg" width="20px" height="20px" />
+                        <span style={{ marginLeft: '8px', fontWeight: 500 }}>Demo card</span>
+                      </div>
+                      <p style={{ margin: '0', fontSize: '14px', color: '#666' }}>
+                        Try card below to make a payment:
+                      </p>
+                      <div style={{ margin: '8px 0', fontSize: '14px', fontFamily: 'monospace' }}>
+                        4242 4242 4242 4242
+                      </div>
+                    </div>
+                  )}
+                  
+                  <ButtonContainer>
+                    <Button onClick={prevStep}>
+                      Back
+                    </Button>
+                  </ButtonContainer>
+                </PaymentColumn>
+              </TwoColumnLayout>
+            </Form>
+          </Fade>
+        </CheckoutContainer>
+      </Container>
+    );
+  }
+  
+  // For step 2 (confirmation), use the original layout
+  return (
+    <Container>
+      <CheckoutContainer>
+        <Fade direction="up" triggerOnce>
+          <Title>Checkout - DIY VEP E-Guide</Title>
+          
+          <StepsContainer>
+            <Steps current={currentStep}>
+              <Step title="Your Details" />
+              <Step title="Payment" />
+              <Step title="Confirmation" />
+            </Steps>
+          </StepsContainer>
+          
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+          >
+            <Card>
+              <SectionTitle>Order Summary</SectionTitle>
+              <SummaryItem>
+                <span>DIY VEP E-Guide</span>
+                <span>$47.00</span>
+              </SummaryItem>
+              <SummaryItem>
+                <span>Discount (Limited Time Offer)</span>
+                <span>-$8.00</span>
+              </SummaryItem>
+              <Total>
+                <span>Total</span>
+                <span>$31.99</span>
+              </Total>
+              
+              <ButtonContainer>
+                <Button onClick={prevStep}>
+                  Back
+                </Button>
+                <Button htmlType="submit">
+                  {isLoading ? "Processing..." : "Complete Purchase"}
+                </Button>
+              </ButtonContainer>
+            </Card>
+          </Form>
+        </Fade>
+      </CheckoutContainer>
+    </Container>
+  );
+};
+
+export default withTranslation()(Checkout);

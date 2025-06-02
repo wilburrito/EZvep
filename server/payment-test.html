@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Payment Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .container { border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
+    button { background: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+    h1 { color: #333; }
+    .debug { margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Simple Payment Test</h1>
+  
+  <div class="container">
+    <h2>Direct Form Submission</h2>
+    <p>This form uses a direct POST submission:</p>
+    
+    <form id="directForm" action="http://localhost:5000/api/create-payment-form" method="POST">
+      <input type="hidden" name="amount" value="1.00">
+      <input type="hidden" name="currency" value="SGD">
+      <input type="hidden" name="name" value="Test Customer">
+      <input type="hidden" name="email" value="test@example.com">
+      <button type="submit">Submit Form Directly</button>
+    </form>
+  </div>
+  
+  <div class="container" style="margin-top: 20px;">
+    <h2>Fetch API Submission</h2>
+    <p>This button uses the Fetch API to submit the data:</p>
+    
+    <button id="fetchButton">Submit via Fetch API</button>
+    
+    <div class="debug">
+      <h3>Debug Output:</h3>
+      <pre id="output">Click the button to see results</pre>
+    </div>
+  </div>
+  
+  <script>
+    // Fetch API submission
+    document.getElementById('fetchButton').addEventListener('click', async function() {
+      const outputElement = document.getElementById('output');
+      outputElement.textContent = 'Sending request...';
+      
+      try {
+        const response = await fetch('http://localhost:5000/api/create-payment-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            amount: '1.00',
+            currency: 'SGD',
+            customerInfo: {
+              name: 'Test Customer',
+              email: 'test@example.com'
+            }
+          })
+        });
+        
+        const data = await response.json();
+        outputElement.textContent = JSON.stringify(data, null, 2);
+        
+        if (data.success && data.paymentUrl) {
+          if (confirm('Redirect to payment page?')) {
+            window.location.href = data.paymentUrl;
+          }
+        }
+      } catch (error) {
+        outputElement.textContent = 'Error: ' + error.message;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Basic Network Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        button { padding: 10px 15px; background: #1890ff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 10px; }
+        #log { background: #f5f5f5; padding: 10px; border-radius: 4px; height: 300px; overflow: auto; margin-top: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Basic Network Test</h1>
+    
+    <button id="testGoogle">1. Test Google Connection</button><br>
+    <button id="testAirwallex">2. Test Airwallex Connection</button><br>
+    <button id="openPayment">3. Open Payment Page</button>
+    
+    <div id="log"></div>
+    
+    <script>
+        const log = document.getElementById('log');
+        
+        function logMessage(message, isError = false) {
+            const div = document.createElement('div');
+            div.textContent = `${new Date().toTimeString().split(' ')[0]}: ${message}`;
+            if (isError) div.style.color = 'red';
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // Test connection to Google
+        document.getElementById('testGoogle').addEventListener('click', () => {
+            logMessage('Testing connection to Google...');
+            
+            fetch('https://www.google.com')
+                .then(response => {
+                    logMessage(`Connection to Google successful! Status: ${response.status}`, false);
+                })
+                .catch(error => {
+                    logMessage(`Connection to Google failed: ${error.message}`, true);
+                });
+        });
+        
+        // Test connection to Airwallex
+        document.getElementById('testAirwallex').addEventListener('click', () => {
+            logMessage('Testing connection to Airwallex...');
+            
+            fetch('https://checkout.airwallex.com/ping')
+                .then(response => {
+                    logMessage(`Connection to Airwallex successful! Status: ${response.status}`, false);
+                })
+                .catch(error => {
+                    logMessage(`Connection to Airwallex failed: ${error.message}`, true);
+                });
+        });
+        
+        // Simulate opening a payment page
+        document.getElementById('openPayment').addEventListener('click', () => {
+            logMessage('Opening a simulated payment page...');
+            
+            // Try to open a new window to simulate a payment page
+            const popup = window.open('https://www.google.com', 'TestWindow', 'width=500,height=500');
+            
+            if (popup) {
+                logMessage('Popup window opened successfully');
+            } else {
+                logMessage('Failed to open popup window. Popups may be blocked.', true);
+            }
+        });
+        
+        // Log browser information
+        logMessage('--- Browser Information ---');
+        logMessage(`User Agent: ${navigator.userAgent}`);
+        logMessage(`Online: ${navigator.onLine ? 'Yes' : 'No'}`);
+        logMessage(`Protocol: ${window.location.protocol}`);
+    </script>
+</body>
+</html>

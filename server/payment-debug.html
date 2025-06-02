@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payment Flow Debugger</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button.secondary {
+      background-color: #3498db;
+    }
+    button.danger {
+      background-color: #e74c3c;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    input {
+      padding: 8px;
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Payment Flow Debugger</h1>
+  
+  <div class="card">
+    <h2>URL Parameters</h2>
+    <pre id="url-params">Loading...</pre>
+  </div>
+  
+  <div class="card">
+    <h2>Session Storage</h2>
+    <pre id="session-storage">Loading...</pre>
+  </div>
+  
+  <div class="card">
+    <h2>Debug Actions</h2>
+    <div class="input-group">
+      <label for="payment-intent-id">Payment Intent ID (optional):</label>
+      <input type="text" id="payment-intent-id" placeholder="mock_payment_12345">
+    </div>
+    <div class="input-group">
+      <label for="order-id">Order ID (optional):</label>
+      <input type="text" id="order-id" placeholder="order_12345">
+    </div>
+    <div class="input-group">
+      <label for="frontend-port">Frontend Port:</label>
+      <select id="frontend-port">
+        <option value="3000">3000 (Default React port)</option>
+        <option value="5000">5000 (Same as backend)</option>
+      </select>
+    </div>
+    <button onclick="simulateSuccess()">Simulate Success</button>
+    <button onclick="simulateFailedPayment()" class="danger">Simulate Failed Payment</button>
+    <button onclick="clearStorage()" class="secondary">Clear Session Storage</button>
+    <button onclick="viewSuccessPageDirectly()" class="secondary">View Success Page Directly</button>
+  </div>
+  
+  <script>
+    // Display URL parameters
+    function showUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const paramsObj = {};
+      for (const [key, value] of params.entries()) {
+        paramsObj[key] = value;
+      }
+      document.getElementById('url-params').textContent = 
+        JSON.stringify(paramsObj, null, 2) || 'No URL parameters';
+    }
+    
+    // Display session storage
+    function showSessionStorage() {
+      const storage = {};
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        try {
+          const value = sessionStorage.getItem(key);
+          storage[key] = JSON.parse(value);
+        } catch (e) {
+          storage[key] = sessionStorage.getItem(key);
+        }
+      }
+      document.getElementById('session-storage').textContent = 
+        Object.keys(storage).length ? JSON.stringify(storage, null, 2) : 'Session storage is empty';
+    }
+    
+    // Get the selected frontend port
+    function getFrontendUrl() {
+      const port = document.getElementById('frontend-port').value;
+      return `http://localhost:${port}`;
+    }
+    
+    // Check if a port is available
+    function checkPortAvailability(port, callback) {
+      const img = new Image();
+      const timeout = setTimeout(function() {
+        img.onerror = img.onload = null;
+        callback(false);
+      }, 1500);
+      
+      img.onerror = function() {
+        clearTimeout(timeout);
+        callback(true);
+      };
+      
+      img.onload = function() {
+        clearTimeout(timeout);
+        callback(true);
+      };
+      
+      img.src = `http://localhost:${port}/favicon.ico?` + new Date().getTime();
+    }
+    
+    // Simulate successful payment
+    function simulateSuccess() {
+      const paymentIntentId = document.getElementById('payment-intent-id').value || 'mock_intent_' + Date.now();
+      const orderId = document.getElementById('order-id').value || 'order_' + Date.now().toString(36);
+      
+      // Create payment data for successful payment
+      const paymentData = {
+        status: 'success',
+        order_id: orderId,
+        payment_intent_id: paymentIntentId
+      };
+      
+      // Try frontend port
+      const frontendUrl = getFrontendUrl();
+      const successUrl = frontendUrl + '/payment-success?' + new URLSearchParams(paymentData).toString();
+      console.log('Attempting to redirect to:', successUrl);
+      
+      // Check if the selected port is available
+      checkPortAvailability(document.getElementById('frontend-port').value, function(isAvailable) {
+        if (isAvailable) {
+          // Port is available, redirect
+          window.location.href = successUrl;
+        } else {
+          // Port not available, try the backend port instead
+          alert('Frontend app seems to be unavailable on port ' + document.getElementById('frontend-port').value + 
+                '. Please make sure your React app is running, or select port 5000 to use the backend server.');
+        }
+      });
+    }
+    
+    // Simulate failed payment
+    function simulateFailedPayment() {
+      const orderId = document.getElementById('order-id').value || 'order_' + Date.now().toString(36);
+      
+      // Create payment data for failed payment
+      const paymentData = {
+        status: 'failed',
+        order_id: orderId,
+        error_code: 'payment_failed',
+        error_message: 'This is a simulated payment failure'
+      };
+      
+      // Try frontend port
+      const frontendUrl = getFrontendUrl();
+      const successUrl = frontendUrl + '/payment-success?' + new URLSearchParams(paymentData).toString();
+      console.log('Attempting to redirect to:', successUrl);
+      
+      // Check if the selected port is available
+      checkPortAvailability(document.getElementById('frontend-port').value, function(isAvailable) {
+        if (isAvailable) {
+          // Port is available, redirect
+          window.location.href = successUrl;
+        } else {
+          // Port not available, try the backend port instead
+          alert('Frontend app seems to be unavailable on port ' + document.getElementById('frontend-port').value + 
+                '. Please make sure your React app is running, or select port 5000 to use the backend server.');
+        }
+      });
+    }
+    
+    // View the success page directly without redirecting
+    function viewSuccessPageDirectly() {
+      const paymentIntentId = document.getElementById('payment-intent-id').value || 'mock_intent_' + Date.now();
+      const orderId = document.getElementById('order-id').value || 'order_' + Date.now().toString(36);
+      
+      // Create payment data for successful payment
+      const paymentData = {
+        status: 'success',
+        order_id: orderId,
+        payment_intent_id: paymentIntentId
+      };
+      
+      // Create URL for both ports to try
+      const port3000Url = 'http://localhost:3000/payment-success?' + new URLSearchParams(paymentData).toString();
+      const port5000Url = 'http://localhost:5000/payment-success?' + new URLSearchParams(paymentData).toString();
+      
+      // Open in new tabs
+      console.log('Opening success pages in new tabs to try both ports');
+      window.open(port3000Url, '_blank');
+      window.open(port5000Url, '_blank');
+    }
+    
+    // Clear session storage
+    function clearStorage() {
+      sessionStorage.clear();
+      showSessionStorage();
+      alert('Session storage cleared');
+    }
+    
+    // Initialize
+    showUrlParams();
+    showSessionStorage();
+  </script>
+</body>
+</html>

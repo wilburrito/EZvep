@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airwallex Payment Flow Test</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      color: #333;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button.secondary {
+      background-color: #2196F3;
+    }
+    button.danger {
+      background-color: #f44336;
+    }
+    input, select {
+      padding: 8px;
+      margin: 5px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      width: 100%;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+    .success {
+      background-color: #dff0d8;
+      color: #3c763d;
+    }
+    .error {
+      background-color: #f2dede;
+      color: #a94442;
+    }
+    .tab {
+      overflow: hidden;
+      border: 1px solid #ccc;
+      background-color: #f1f1f1;
+      border-radius: 4px 4px 0 0;
+    }
+    .tab button {
+      background-color: inherit;
+      float: left;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      transition: 0.3s;
+      color: #333;
+    }
+    .tab button:hover {
+      background-color: #ddd;
+    }
+    .tab button.active {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .tabcontent {
+      display: none;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Airwallex Payment Flow Test</h1>
+    
+    <div class="tab">
+      <button class="tablinks active" onclick="openTab(event, 'DirectTest')">Direct Payment Test</button>
+      <button class="tablinks" onclick="openTab(event, 'SystemCheck')">System Check</button>
+      <button class="tablinks" onclick="openTab(event, 'EnvSetup')">Environment Setup</button>
+    </div>
+    
+    <div id="DirectTest" class="tabcontent" style="display: block;">
+      <div class="card">
+        <h2>Test Direct Payment Flow</h2>
+        <p>Test the server-side payment URL creation with Airwallex</p>
+        
+        <div class="form-group">
+          <label for="amount">Amount:</label>
+          <input type="number" id="amount" min="0.01" step="0.01" value="29.99">
+        </div>
+        
+        <div class="form-group">
+          <label for="currency">Currency:</label>
+          <select id="currency">
+            <option value="SGD">SGD</option>
+            <option value="EUR">EUR</option>
+            <option value="GBP">GBP</option>
+            <option value="AUD">AUD</option>
+            <option value="SGD">SGD</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="customerName">Customer Name:</label>
+          <input type="text" id="customerName" value="Test Customer">
+        </div>
+        
+        <div class="form-group">
+          <label for="customerEmail">Customer Email:</label>
+          <input type="email" id="customerEmail" value="test@example.com">
+        </div>
+        
+        <button onclick="testDirectPayment()">Create Direct Payment URL</button>
+        <button class="secondary" onclick="testMockPayment()">Test with Mock Payment</button>
+        
+        <div id="paymentResult" class="status" style="display: none;"></div>
+        
+        <div id="paymentUrlContainer" style="display: none; margin-top: 20px;">
+          <h3>Generated Payment URL:</h3>
+          <pre id="paymentUrl"></pre>
+          <button id="openPaymentUrl" onclick="openPaymentUrl()">Open Payment Page</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="SystemCheck" class="tabcontent">
+      <div class="card">
+        <h2>System Configuration Check</h2>
+        <button onclick="checkSystemConfig()">Check Configuration</button>
+        <div id="configStatus" class="status" style="display: none;"></div>
+      </div>
+      
+      <div class="card">
+        <h2>Port Availability</h2>
+        <p>Check if the required ports are available and services are running</p>
+        <button onclick="checkPorts()">Check Ports</button>
+        <div id="portStatus" class="status" style="display: none;"></div>
+      </div>
+      
+      <div class="card">
+        <h2>Backend API Test</h2>
+        <p>Test basic connectivity to the backend API</p>
+        <button onclick="testBackendApi()">Test API Connection</button>
+        <div id="apiStatus" class="status" style="display: none;"></div>
+      </div>
+    </div>
+    
+    <div id="EnvSetup" class="tabcontent">
+      <div class="card">
+        <h2>Environment Setup Guide</h2>
+        <p>Follow these steps to set up your environment for Airwallex testing:</p>
+        
+        <h3>1. Configure .env File</h3>
+        <p>Make sure your <code>.env</code> file in the server directory contains:</p>
+        <pre>USE_FALLBACK_MODE=false
+AIRWALLEX_CLIENT_ID=your_airwallex_client_id
+AIRWALLEX_API_KEY=your_airwallex_api_key
+AIRWALLEX_ENV=demo
+PORT=5000</pre>
+        
+        <h3>2. Start Backend Server</h3>
+        <p>Run the backend server on port 5000:</p>
+        <pre>cd server
+node index.js</pre>
+        
+        <h3>3. Start Frontend Application</h3>
+        <p>Run the React frontend on port 3000:</p>
+        <pre>cd ..
+npm start</pre>
+        
+        <h3>4. Test Checkout Flow</h3>
+        <p>Go through the checkout process on the frontend and verify the following:</p>
+        <ul>
+          <li>Redirection to Airwallex hosted payment page</li>
+          <li>Successful payment processing</li>
+          <li>Return to success page with proper parameters</li>
+        </ul>
+        
+        <button class="secondary" onclick="goToPaymentDebugger()">Open Payment Debugger</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab functionality
+    function openTab(evt, tabName) {
+      var i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      tablinks = document.getElementsByClassName("tablinks");
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(tabName).style.display = "block";
+      evt.currentTarget.className += " active";
+    }
+    
+    // Test direct payment flow
+    async function testDirectPayment() {
+      const amount = document.getElementById('amount').value;
+      const currency = document.getElementById('currency').value;
+      const customerName = document.getElementById('customerName').value;
+      const customerEmail = document.getElementById('customerEmail').value;
+      
+      const resultElement = document.getElementById('paymentResult');
+      resultElement.className = 'status';
+      resultElement.style.display = 'block';
+      resultElement.textContent = 'Creating payment URL...';
+      
+      try {
+        const serverPort = await getBackendPort();
+        
+        const response = await fetch(`http://localhost:${serverPort}/api/create-payment-url`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            amount,
+            currency,
+            customerInfo: {
+              name: customerName,
+              email: customerEmail
+            }
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          resultElement.className = 'status success';
+          resultElement.textContent = 'Payment URL created successfully!';
+          
+          if (data.fallback) {
+            resultElement.textContent += ' (Using fallback mode due to: ' + data.error + ')';
+          }
+          
+          document.getElementById('paymentUrl').textContent = data.paymentUrl;
+          document.getElementById('paymentUrlContainer').style.display = 'block';
+          document.getElementById('openPaymentUrl').dataset.url = data.paymentUrl;
+        } else {
+          resultElement.className = 'status error';
+          resultElement.textContent = 'Error: ' + data.message;
+          document.getElementById('paymentUrlContainer').style.display = 'none';
+        }
+      } catch (error) {
+        resultElement.className = 'status error';
+        resultElement.textContent = 'Error: ' + error.message;
+        document.getElementById('paymentUrlContainer').style.display = 'none';
+      }
+    }
+    
+    // Test with mock payment
+    async function testMockPayment() {
+      const amount = document.getElementById('amount').value;
+      const currency = document.getElementById('currency').value;
+      const customerName = document.getElementById('customerName').value;
+      const customerEmail = document.getElementById('customerEmail').value;
+      
+      const serverPort = await getBackendPort();
+      
+      // Create mock payment URL
+      const mockParams = new URLSearchParams({
+        amount,
+        currency,
+        orderId: `mock_order_${Date.now()}`,
+        customerName,
+        returnUrl: 'http://localhost:3000/payment-success'
+      });
+      
+      const mockUrl = `http://localhost:${serverPort}/mock-payment?${mockParams.toString()}`;
+      
+      document.getElementById('paymentResult').className = 'status success';
+      document.getElementById('paymentResult').style.display = 'block';
+      document.getElementById('paymentResult').textContent = 'Mock payment URL created!';
+      
+      document.getElementById('paymentUrl').textContent = mockUrl;
+      document.getElementById('paymentUrlContainer').style.display = 'block';
+      document.getElementById('openPaymentUrl').dataset.url = mockUrl;
+    }
+    
+    // Open payment URL
+    function openPaymentUrl() {
+      const url = document.getElementById('openPaymentUrl').dataset.url;
+      if (url) {
+        window.open(url, '_blank');
+      }
+    }
+    
+    // Check system configuration
+    async function checkSystemConfig() {
+      const statusElement = document.getElementById('configStatus');
+      statusElement.style.display = 'block';
+      statusElement.textContent = 'Checking system configuration...';
+      
+      try {
+        const serverPort = await getBackendPort();
+        
+        const response = await fetch(`http://localhost:${serverPort}/api/test-airwallex`);
+        const data = await response.json();
+        
+        statusElement.innerHTML = '<h3>System Configuration:</h3>';
+        statusElement.innerHTML += `<p>Backend Port: ${serverPort}</p>`;
+        statusElement.innerHTML += `<p>Airwallex Environment: ${data.environment || 'Not configured'}</p>`;
+        statusElement.innerHTML += `<p>Client ID Available: ${data.clientIdAvailable ? 'Yes' : 'No'}</p>`;
+        statusElement.innerHTML += `<p>API Key Available: ${data.apiKeyAvailable ? 'Yes' : 'No'}</p>`;
+        statusElement.innerHTML += `<p>Fallback Mode: ${data.useFallbackMode ? 'Enabled' : 'Disabled'}</p>`;
+        
+        if (!data.clientIdAvailable || !data.apiKeyAvailable) {
+          statusElement.className = 'status error';
+          statusElement.innerHTML += '<p class="error">⚠️ Airwallex credentials are missing. Please check your .env file.</p>';
+        } else if (data.useFallbackMode) {
+          statusElement.className = 'status';
+          statusElement.innerHTML += '<p>⚠️ Using fallback mode - not testing with real Airwallex.</p>';
+        } else {
+          statusElement.className = 'status success';
+          statusElement.innerHTML += '<p class="success">✅ Configuration looks good for Airwallex testing!</p>';
+        }
+      } catch (error) {
+        statusElement.className = 'status error';
+        statusElement.textContent = 'Error checking configuration: ' + error.message;
+      }
+    }
+    
+    // Check port availability
+    async function checkPorts() {
+      const statusElement = document.getElementById('portStatus');
+      statusElement.style.display = 'block';
+      statusElement.textContent = 'Checking ports...';
+      
+      try {
+        // Check backend port (5000 or the actual detected port)
+        const serverPort = await getBackendPort();
+        const backendAvailable = await isPortAvailable(serverPort);
+        
+        // Check frontend port (3000)
+        const frontendAvailable = await isPortAvailable(3000);
+        
+        statusElement.innerHTML = '<h3>Port Status:</h3>';
+        statusElement.innerHTML += `<p>Backend (Port ${serverPort}): ${backendAvailable ? '✅ Available' : '❌ Not available'}</p>`;
+        statusElement.innerHTML += `<p>Frontend (Port 3000): ${frontendAvailable ? '✅ Available' : '❌ Not available'}</p>`;
+        
+        if (backendAvailable && frontendAvailable) {
+          statusElement.className = 'status success';
+          statusElement.innerHTML += '<p class="success">✅ All required ports are available!</p>';
+        } else {
+          statusElement.className = 'status error';
+          statusElement.innerHTML += '<p class="error">⚠️ Some required ports are not available.</p>';
+          
+          if (!backendAvailable) {
+            statusElement.innerHTML += `<p>Please start the backend server on port ${serverPort}.</p>`;
+          }
+          
+          if (!frontendAvailable) {
+            statusElement.innerHTML += '<p>Please start the frontend application on port 3000.</p>';
+          }
+        }
+      } catch (error) {
+        statusElement.className = 'status error';
+        statusElement.textContent = 'Error checking ports: ' + error.message;
+      }
+    }
+    
+    // Test backend API
+    async function testBackendApi() {
+      const statusElement = document.getElementById('apiStatus');
+      statusElement.style.display = 'block';
+      statusElement.textContent = 'Testing API connection...';
+      
+      try {
+        const serverPort = await getBackendPort();
+        
+        const response = await fetch(`http://localhost:${serverPort}/api/test`);
+        const data = await response.text();
+        
+        statusElement.className = 'status success';
+        statusElement.innerHTML = '<p class="success">✅ Backend API is accessible!</p>';
+        statusElement.innerHTML += `<p>Response: ${data}</p>`;
+      } catch (error) {
+        statusElement.className = 'status error';
+        statusElement.textContent = 'Error connecting to backend API: ' + error.message;
+      }
+    }
+    
+    // Go to payment debugger
+    async function goToPaymentDebugger() {
+      const serverPort = await getBackendPort();
+      window.open(`http://localhost:${serverPort}/payment-debug.html`, '_blank');
+    }
+    
+    // Helper: Check if a port is available
+    async function isPortAvailable(port) {
+      try {
+        const response = await fetch(`http://localhost:${port}`, { 
+          method: 'HEAD',
+          mode: 'no-cors',
+          cache: 'no-cache',
+          timeout: 2000
+        });
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+    
+    // Helper: Get backend port
+    async function getBackendPort() {
+      // Try port 5000 first
+      if (await isPortAvailable(5000)) {
+        return 5000;
+      }
+      
+      // Try port 3001 as fallback (server reported running on this port earlier)
+      if (await isPortAvailable(3001)) {
+        return 3001;
+      }
+      
+      // Default to 5000 if we can't detect an available port
+      return 5000;
+    }
+    
+    // Initialize page
+    window.onload = function() {
+      // Add event listeners and initial setup if needed
+    };
+  </script>
+</body>
+</html>

@@ -13,6 +13,7 @@ const Container = lazy(() => import("../../common/Container"));
 const ScrollToTop = lazy(() => import("../../common/ScrollToTop"));
 const ContentBlock = lazy(() => import("../../components/ContentBlock"));
 const GoogleReviews = lazy(() => import("../../components/GoogleReviews"));
+const PricingTable = lazy(() => import("../../components/PricingTable"));
 
 const Home = () => {
 
@@ -53,11 +54,9 @@ const Home = () => {
         content={GoogleReviewsContent.text}
         id="reviews"
       />
-      <ContentBlock
-        direction="right"
+      <PricingTable
         title={PricingContent.title}
         content={PricingContent.text}
-        icon="PRICING.svg"
         id="pricing"
       />
       <MiddleBlock

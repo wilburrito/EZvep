@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EZVEP Stripe Payment UAT Testing</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2563eb;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #4b5563;
+            margin-top: 30px;
+        }
+        .test-form {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #ecfdf5;
+            border: 1px solid #10b981;
+            color: #047857;
+        }
+        .error {
+            background-color: #fef2f2;
+            border: 1px solid #ef4444;
+            color: #b91c1c;
+        }
+        .test-card {
+            background-color: #eff6ff;
+            border: 1px solid #93c5fd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        code {
+            background-color: #f3f4f6;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .instruction-step {
+            margin-bottom: 15px;
+        }
+        .checkout-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .scenario-select {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>EZVEP Stripe Payment UAT Testing</h1>
+    
+    <div class="scenario-select">
+        <label for="test-scenario">Select Test Scenario:</label>
+        <select id="test-scenario" onchange="updateFormForScenario()">
+            <option value="standard">Standard Checkout (SGD 47.00)</option>
+            <option value="custom">Custom Amount</option>
+            <option value="zero">Zero Dollar (Free)</option>
+            <option value="high-value">High Value (SGD 999.99)</option>
+        </select>
+    </div>
+
+    <div class="test-form">
+        <h2>Payment Details</h2>
+        <div class="form-group">
+            <label for="amount">Amount (SGD):</label>
+            <input type="number" id="amount" step="0.01" min="0" value="47.00" placeholder="Enter amount">
+        </div>
+        <div class="form-group">
+            <label for="customer-name">Customer Name:</label>
+            <input type="text" id="customer-name" placeholder="Enter customer name">
+        </div>
+        <div class="form-group">
+            <label for="customer-email">Customer Email:</label>
+            <input type="email" id="customer-email" placeholder="Enter customer email">
+        </div>
+
+        <div class="checkout-options">
+            <button id="create-session-btn" onclick="createCheckoutSession()">Create Checkout Session</button>
+            <button class="btn-secondary" onclick="resetForm()">Reset Form</button>
+        </div>
+
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <h2>Test Card Information</h2>
+    <div class="test-card">
+        <p><strong>Successful Payment:</strong></p>
+        <p>Card Number: <code>4242 4242 4242 4242</code></p>
+        <p>Expiry: Any future date (e.g., <code>12/30</code>)</p>
+        <p>CVC: Any 3 digits (e.g., <code>123</code>)</p>
+        <p>Name: Any name</p>
+        <p>Postal Code: Any postal code (e.g., <code>12345</code>)</p>
+    </div>
+
+    <div class="test-card">
+        <p><strong>Failed Payment:</strong></p>
+        <p>Card Number: <code>4000 0000 0000 0002</code> (Generic Decline)</p>
+        <p>Card Number: <code>4000 0000 0000 9995</code> (Insufficient Funds)</p>
+        <p>Other test cards: <a href="https://stripe.com/docs/testing#cards" target="_blank">Stripe Test Cards</a></p>
+    </div>
+
+    <h2>UAT Testing Instructions</h2>
+    <div>
+        <div class="instruction-step">
+            <p><strong>Step 1:</strong> Select a test scenario from the dropdown above or customize the amount.</p>
+        </div>
+        <div class="instruction-step">
+            <p><strong>Step 2:</strong> Enter customer details (any name and valid email format).</p>
+        </div>
+        <div class="instruction-step">
+            <p><strong>Step 3:</strong> Click "Create Checkout Session" to generate a Stripe checkout link.</p>
+        </div>
+        <div class="instruction-step">
+            <p><strong>Step 4:</strong> Click "Proceed to Payment" to open the Stripe checkout page.</p>
+        </div>
+        <div class="instruction-step">
+            <p><strong>Step 5:</strong> Enter test card details from the section above.</p>
+        </div>
+        <div class="instruction-step">
+            <p><strong>Step 6:</strong> Complete the payment and verify the success page appears.</p>
+        </div>
+        <div class="instruction-step">
+            <p><strong>Step 7:</strong> Try different test scenarios and card types to ensure proper error handling.</p>
+        </div>
+    </div>
+
+    <script>
+        function updateFormForScenario() {
+            const scenario = document.getElementById('test-scenario').value;
+            const amountInput = document.getElementById('amount');
+            
+            switch(scenario) {
+                case 'standard':
+                    amountInput.value = '47.00';
+                    break;
+                case 'custom':
+                    amountInput.value = '';
+                    amountInput.focus();
+                    break;
+                case 'zero':
+                    amountInput.value = '0.00';
+                    break;
+                case 'high-value':
+                    amountInput.value = '999.99';
+                    break;
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('test-scenario').value = 'standard';
+            document.getElementById('amount').value = '47.00';
+            document.getElementById('customer-name').value = '';
+            document.getElementById('customer-email').value = '';
+            
+            const resultEl = document.getElementById('result');
+            resultEl.style.display = 'none';
+            resultEl.className = 'result';
+            resultEl.innerHTML = '';
+        }
+
+        async function createCheckoutSession() {
+            const amount = parseFloat(document.getElementById('amount').value);
+            const customerName = document.getElementById('customer-name').value;
+            const customerEmail = document.getElementById('customer-email').value;
+            const resultEl = document.getElementById('result');
+            
+            // Input validation
+            if (isNaN(amount)) {
+                resultEl.className = 'result error';
+                resultEl.innerHTML = '<p>Please enter a valid amount</p>';
+                resultEl.style.display = 'block';
+                return;
+            }
+            
+            if (!customerEmail) {
+                resultEl.className = 'result error';
+                resultEl.innerHTML = '<p>Please enter a customer email</p>';
+                resultEl.style.display = 'block';
+                return;
+            }
+            
+            resultEl.className = 'result';
+            resultEl.innerHTML = '<p>Creating checkout session...</p>';
+            resultEl.style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        amount: amount,
+                        customerName: customerName || 'Test Customer',
+                        customerEmail: customerEmail,
+                        currency: 'sgd',
+                        eventId: 'uat-test-' + Date.now(),
+                        paymentMode: 'payment',
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultEl.className = 'result success';
+                    resultEl.innerHTML = 
+                        '<p>Checkout session created successfully!</p>' +
+                        '<p>Session ID: ' + data.id + '</p>' +
+                        '<p><a href="' + data.url + '" target="_blank" style="display:inline-block; margin-top:10px; padding:8px 12px; background:#22c55e; color:white; text-decoration:none; border-radius:4px;">Proceed to Payment</a></p>';
+                    // Log success details
+                    console.log('Checkout session created:', data);
+                } else {
+                    throw new Error(data.error || 'Failed to create checkout session');
+                }
+            } catch (error) {
+                resultEl.className = 'result error';
+                resultEl.innerHTML = '<p>Error: ' + error.message + '</p>';
+                console.error('Checkout error:', error);
+            }
+        }
+
+        // Initialize with default values
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set default customer name and email for quick testing
+            document.getElementById('customer-name').value = 'UAT Tester';
+            document.getElementById('customer-email').value = 'test@example.com';
+        });
+    </script>
+</body>
+</html>

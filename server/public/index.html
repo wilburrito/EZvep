@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Airwallex Payment Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        button { padding: 10px 15px; background: #1890ff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        pre { background: #f5f5f5; padding: 15px; border-radius: 4px; overflow: auto; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Airwallex Payment Integration Test</h1>
+    <p>This page tests your Airwallex integration by creating a payment intent and redirecting to the hosted payment page.</p>
+    
+    <div>
+        <h2>Step 1: Create Payment Intent</h2>
+        <button id="createIntent">Create Payment Intent</button>
+        <div id="intentResult"></div>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h2>Step 2: Redirect to Hosted Payment Page</h2>
+        <button id="redirectToPayment" disabled>Redirect to Payment Page</button>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h2>Results Log</h2>
+        <pre id="log"></pre>
+    </div>
+    
+    <script>
+        let paymentData = null;
+        const log = document.getElementById('log');
+        const intentResult = document.getElementById('intentResult');
+        const redirectBtn = document.getElementById('redirectToPayment');
+        
+        function appendLog(message, isError = false) {
+            const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+            log.innerHTML += `[${timestamp}] ${isError ? '<span class="error">ERROR: ' : ''}${message}${isError ? '</span>' : ''}
+`;
+        }
+        
+        document.getElementById('createIntent').addEventListener('click', async () => {
+            appendLog('Creating payment intent...');
+            intentResult.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('/api/create-test-intent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: 1.00,
+                        currency: 'SGD',
+                        customerInfo: {
+                            name: 'Test Customer',
+                            email: 'test@example.com'
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    appendLog(data.error, true);
+                    intentResult.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+                    return;
+                }
+                
+                paymentData = data;
+                appendLog(`Payment intent created: ${data.intentId}`);
+                intentResult.innerHTML = `
+                    <p class="success">Payment Intent Created Successfully</p>
+                    <p><strong>Intent ID:</strong> ${data.intentId}</p>
+                    <p><strong>Client Secret:</strong> ${data.clientSecret.substring(0, 15)}...</p>
+                `;
+                
+                redirectBtn.disabled = false;
+            } catch (error) {
+                appendLog(`Failed to create intent: ${error.message}`, true);
+                intentResult.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        });
+        
+        document.getElementById('redirectToPayment').addEventListener('click', async () => {
+            if (!paymentData) {
+                appendLog('No payment intent available', true);
+                return;
+            }
+            
+            appendLog('Loading Airwallex SDK...');
+            
+            // Dynamically load the Airwallex SDK
+            const script = document.createElement('script');
+            script.src = 'https://checkout.airwallex.com/assets/components.js';
+            script.onload = async () => {
+                appendLog('Airwallex SDK loaded');
+                
+                try {
+                    const { payments } = await window.Airwallex.init({
+                        env: 'demo',
+                        origin: window.location.origin,
+                    });
+                    
+                    appendLog('Airwallex initialized, redirecting to payment page...');
+                    
+                    await payments.redirectToCheckout({
+                        intent_id: paymentData.intentId,
+                        client_secret: paymentData.clientSecret,
+                        currency: 'SGD'
+                    });
+                    
+                    // If we get here, redirection failed
+                    appendLog('Redirect failed or was blocked', true);
+                } catch (error) {
+                    appendLog(`SDK Error: ${error.message}`, true);
+                }
+            };
+            
+            script.onerror = () => {
+                appendLog('Failed to load Airwallex SDK', true);
+            };
+            
+            document.head.appendChild(script);
+        });
+        
+        // Add initial log
+        appendLog('Test page loaded');
+    </script>
+</body>
+</html>

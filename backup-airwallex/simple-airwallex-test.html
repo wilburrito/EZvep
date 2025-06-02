@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Airwallex Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        button { padding: 10px 15px; background: #1890ff; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        pre { background: #f5f5f5; padding: 15px; border-radius: 4px; overflow: auto; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Simple Airwallex Test</h1>
+    <p>This page tests the Airwallex JavaScript SDK directly in your browser.</p>
+    
+    <div>
+        <h2>Step 1: Load Airwallex SDK</h2>
+        <button id="loadSDK">Load Airwallex SDK</button>
+        <div id="sdkStatus"></div>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h2>Step 2: Initialize SDK</h2>
+        <button id="initSDK" disabled>Initialize SDK</button>
+        <div id="initStatus"></div>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h2>Step 3: Create Test Intent</h2>
+        <p>Click to simulate creating a payment intent through your backend:</p>
+        <button id="simulateIntent" disabled>Simulate Payment Intent</button>
+        <div id="intentStatus"></div>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h2>Step 4: Go to Hosted Payment Page</h2>
+        <button id="goToPayment" disabled>Go to Payment Page</button>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h2>Results Log</h2>
+        <pre id="log"></pre>
+    </div>
+    
+    <script>
+        // Global variables
+        let Airwallex;
+        let AirwallexComponents;
+        const log = document.getElementById('log');
+        
+        // Mock payment intent (simulating what your server would create)
+        const mockPaymentIntent = {
+            id: 'mock_intent_' + Math.random().toString(36).substring(2, 10),
+            client_secret: 'mock_secret_' + Math.random().toString(36).substring(2, 15),
+            currency: 'SGD',
+            amount: 1.00
+        };
+        
+        function appendLog(message, isError = false) {
+            const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+            log.innerHTML += `[${timestamp}] ${isError ? '<span class="error">ERROR: ' : ''}${message}${isError ? '</span>' : ''}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // Step 1: Load SDK
+        document.getElementById('loadSDK').addEventListener('click', () => {
+            appendLog('Loading Airwallex SDK...');
+            document.getElementById('sdkStatus').innerHTML = '<p>Loading...</p>';
+            
+            appendLog('Testing network connectivity...');
+            
+            // First test network connectivity to google.com
+            fetch('https://www.google.com')
+                .then(response => {
+                    appendLog(`✅ Network connectivity test passed: ${response.status}`);
+                    appendLog('Now trying to load Airwallex SDK...');
+                    
+                    // Load the Airwallex Components SDK
+                    const script = document.createElement('script');
+                    script.src = 'https://checkout.airwallex.com/assets/components.js';
+                    script.async = true;
+                    
+                    script.onload = () => {
+                        appendLog('✅ Airwallex SDK loaded successfully');
+                        document.getElementById('sdkStatus').innerHTML = '<p class="success">SDK loaded successfully</p>';
+                        document.getElementById('initSDK').disabled = false;
+                        
+                        // Store the global Airwallex object
+                        Airwallex = window.Airwallex;
+                    };
+                    
+                    script.onerror = (event) => {
+                        appendLog(`Failed to load Airwallex SDK from: ${script.src}`, true);
+                        appendLog('This may be due to network restrictions, security settings, or content blockers', true);
+                        document.getElementById('sdkStatus').innerHTML = 
+                            `<p class="error">Failed to load SDK. Please check console (F12) for details.</p>
+                             <p>Error details: ${event ? JSON.stringify(event) : 'No error details available'}</p>`;
+                    };
+                    
+                    // Add a timeout to detect slow loading
+                    const timeout = setTimeout(() => {
+                        if (!window.Airwallex) {
+                            appendLog('SDK loading timeout after 10 seconds', true);
+                        }
+                    }, 10000);
+                    
+                    document.head.appendChild(script);
+                })
+                .catch(error => {
+                    appendLog(`❌ Network connectivity test failed: ${error.message}`, true);
+                    document.getElementById('sdkStatus').innerHTML = 
+                        `<p class="error">Network connectivity issue: ${error.message}</p>
+                         <p>This suggests your device may have restricted network access.</p>`;
+                });
+        });
+        
+        // Step 2: Initialize SDK
+        document.getElementById('initSDK').addEventListener('click', async () => {
+            if (!Airwallex) {
+                appendLog('Airwallex SDK not loaded', true);
+                return;
+            }
+            
+            appendLog('Initializing Airwallex SDK...');
+            document.getElementById('initStatus').innerHTML = '<p>Initializing...</p>';
+            
+            try {
+                // Initialize the SDK
+                AirwallexComponents = await Airwallex.init({
+                    env: 'demo',
+                    origin: window.location.origin,
+                });
+                
+                appendLog('✅ Airwallex SDK initialized successfully');
+                document.getElementById('initStatus').innerHTML = '<p class="success">SDK initialized successfully</p>';
+                document.getElementById('simulateIntent').disabled = false;
+            } catch (error) {
+                appendLog(`Failed to initialize Airwallex SDK: ${error.message}`, true);
+                document.getElementById('initStatus').innerHTML = `<p class="error">Initialization failed: ${error.message}</p>`;
+            }
+        });
+        
+        // Step 3: Simulate creating a payment intent
+        document.getElementById('simulateIntent').addEventListener('click', () => {
+            appendLog('Simulating payment intent creation...');
+            document.getElementById('intentStatus').innerHTML = '<p>Creating...</p>';
+            
+            // In a real implementation, you would call your server here
+            // For this test, we're just using a mock payment intent
+            setTimeout(() => {
+                appendLog(`✅ Payment intent simulated with ID: ${mockPaymentIntent.id}`);
+                document.getElementById('intentStatus').innerHTML = `
+                    <p class="success">Payment intent created</p>
+                    <p><strong>Intent ID:</strong> ${mockPaymentIntent.id}</p>
+                    <p><strong>Client Secret:</strong> ${mockPaymentIntent.client_secret.substring(0, 15)}...</p>
+                `;
+                document.getElementById('goToPayment').disabled = false;
+            }, 1000);
+        });
+        
+        // Step 4: Go to payment page
+        document.getElementById('goToPayment').addEventListener('click', async () => {
+            appendLog('Preparing to redirect to payment page...');
+            
+            if (!AirwallexComponents || !AirwallexComponents.payments) {
+                appendLog('Airwallex Components not initialized', true);
+                return;
+            }
+            
+            try {
+                appendLog('Opening a simulated payment page (since we can\'t connect to real Airwallex)...');
+                
+                // Create a simple popup to simulate the payment experience
+                const width = 500;
+                const height = 650;
+                const left = (window.innerWidth - width) / 2;
+                const top = (window.innerHeight - height) / 2;
+                
+                const popup = window.open(
+                    '', 
+                    'PaymentWindow', 
+                    `width=${width},height=${height},top=${top},left=${left}`
+                );
+                
+                if (!popup) {
+                    appendLog('Failed to open popup. Please allow popups for this site.', true);
+                    return;
+                }
+                
+                popup.document.write(`
+                    <html>
+                        <head>
+                            <title>Simulated Payment Page</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+                                .success { color: green; margin: 30px 0; }
+                                button { padding: 10px 20px; background: #1890ff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+                            </style>
+                        </head>
+                        <body>
+                            <h2>Simulated Payment Page</h2>
+                            <p>This is a simulated payment page since we couldn't connect to the real Airwallex service.</p>
+                            <p>In a real implementation, you would see Airwallex's hosted payment form here.</p>
+                            <button onclick="window.close(); window.opener.paymentComplete();">Simulate Successful Payment</button>
+                        </body>
+                    </html>
+                `);
+                
+                // Define payment complete handler
+                window.paymentComplete = function() {
+                    appendLog('✅ Simulated payment completed successfully');
+                };
+                
+            } catch (error) {
+                appendLog(`Error handling payment page: ${error.message}`, true);
+            }
+        });
+        
+        // Add diagnostics section
+        function addDiagnostics() {
+            appendLog('--- Browser Information ---');
+            appendLog(`User Agent: ${navigator.userAgent}`);
+            appendLog(`Platform: ${navigator.platform}`);
+            appendLog(`Online: ${navigator.onLine}`);
+            appendLog(`Cookies Enabled: ${navigator.cookieEnabled}`);
+            
+            appendLog('--- Connection Information ---');
+            if (navigator.connection) {
+                appendLog(`Connection Type: ${navigator.connection.effectiveType || 'Unknown'}`);
+                appendLog(`Downlink: ${navigator.connection.downlink || 'Unknown'} Mbps`);
+            } else {
+                appendLog('Connection API not available');
+            }
+            
+            appendLog('--- Security Information ---');
+            appendLog(`Secure Context: ${window.isSecureContext ? 'Yes' : 'No'}`);
+            appendLog(`Protocol: ${window.location.protocol}`);
+        }
+        
+        // Initial log
+        appendLog('Test page loaded. Start by clicking "Load Airwallex SDK"');
+        addDiagnostics();
+    </script>
+</body>
+</html>

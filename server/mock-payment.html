@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EZVEP Mock Payment</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .payment-container {
+      max-width: 600px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    .payment-header {
+      background-color: #4f46e5;
+      color: white;
+      padding: 20px 30px;
+    }
+    .payment-header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .payment-content {
+      padding: 30px;
+    }
+    .order-summary {
+      margin-bottom: 25px;
+      border-bottom: 1px solid #eaeaea;
+      padding-bottom: 20px;
+    }
+    .order-summary h2 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #333;
+    }
+    .order-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    .order-info .label {
+      color: #666;
+    }
+    .order-info .value {
+      font-weight: 600;
+      color: #333;
+    }
+    .card-container {
+      margin-bottom: 30px;
+      border: 1px solid #eaeaea;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .card-info {
+      margin-bottom: 20px;
+    }
+    .card-row {
+      display: flex;
+      margin-bottom: 15px;
+    }
+    .card-row label {
+      width: 120px;
+      color: #666;
+    }
+    .card-row span {
+      font-weight: 500;
+      color: #333;
+    }
+    .pay-button {
+      display: block;
+      width: 100%;
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 14px 0;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      text-align: center;
+    }
+    .pay-button:hover {
+      background-color: #4338ca;
+    }
+    .timer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="payment-container">
+    <div class="payment-header">
+      <h1>Complete Your Payment</h1>
+    </div>
+    <div class="payment-content">
+      <div class="order-summary">
+        <h2>Order Summary</h2>
+        <div class="order-info">
+          <span class="label">Session ID:</span>
+          <span class="value" id="session-id"></span>
+        </div>
+        <div class="order-info">
+          <span class="label">Amount:</span>
+          <span class="value" id="amount"></span>
+        </div>
+      </div>
+
+      <div class="card-container">
+        <h2>Test Card Information</h2>
+        <div class="card-info">
+          <div class="card-row">
+            <label>Card Number:</label>
+            <span>4242 4242 4242 4242</span>
+          </div>
+          <div class="card-row">
+            <label>Expiry Date:</label>
+            <span>12/2025</span>
+          </div>
+          <div class="card-row">
+            <label>CVC:</label>
+            <span>123</span>
+          </div>
+          <div class="card-row">
+            <label>ZIP Code:</label>
+            <span>12345</span>
+          </div>
+        </div>
+      </div>
+      
+      <button id="pay-button" class="pay-button">Pay Now</button>
+      
+      <div class="timer" id="timer">Redirecting in <span id="countdown">5</span> seconds...</div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Parse URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('sessionId') || 'test_session';
+      const amount = urlParams.get('amount') || '29.99';
+      const currency = urlParams.get('currency') || 'SGD';
+      
+      // Display order information
+      document.getElementById('session-id').textContent = sessionId;
+      document.getElementById('amount').textContent = `${currency.toUpperCase()} ${parseFloat(amount).toFixed(2)}`;
+      
+      // Hide timer initially
+      document.getElementById('timer').style.display = 'none';
+      
+      // Handle payment button click
+      document.getElementById('pay-button').addEventListener('click', function() {
+        this.disabled = true;
+        this.textContent = 'Processing...';
+        document.getElementById('timer').style.display = 'block';
+        
+        // Start countdown
+        let countdown = 5;
+        const countdownEl = document.getElementById('countdown');
+        const intervalId = setInterval(function() {
+          countdown--;
+          countdownEl.textContent = countdown;
+          
+          if (countdown <= 0) {
+            clearInterval(intervalId);
+            // Redirect to success page
+            window.location.href = `/payment-success?session_id=${sessionId}`;
+          }
+        }, 1000);
+      });
+    });
+  </script>
+</body>
+</html>

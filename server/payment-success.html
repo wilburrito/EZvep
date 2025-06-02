@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EZVEP Payment Successful</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .success-container {
+            margin-top: 50px;
+            padding: 30px;
+            background-color: #f0fdf4;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #15803d;
+        }
+        .success-icon {
+            font-size: 72px;
+            color: #22c55e;
+            margin-bottom: 20px;
+        }
+        .details {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: left;
+        }
+        .details h2 {
+            color: #4b5563;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .details p {
+            margin: 5px 0;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-top: 30px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #1d4ed8;
+        }
+        #session-id {
+            font-family: monospace;
+            background-color: #f3f4f6;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">✓</div>
+        <h1>Payment Successful!</h1>
+        <p>Your payment has been processed successfully.</p>
+        
+        <div class="details">
+            <h2>Payment Details</h2>
+            <p>Session ID: <span id="session-id">Loading...</span></p>
+            <p>Status: <strong>Paid</strong></p>
+            <div id="additional-details"></div>
+        </div>
+        
+        <a href="/" class="btn">Return to Home</a>
+    </div>
+
+    <script>
+        // Extract session ID from URL query parameters
+        function getSessionId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('session_id');
+        }
+        
+        // Load payment details
+        async function loadPaymentDetails() {
+            const sessionId = getSessionId();
+            if (!sessionId) {
+                document.getElementById('session-id').textContent = 'No session ID provided';
+                return;
+            }
+            
+            document.getElementById('session-id').textContent = sessionId;
+            
+            try {
+                // Call the backend API to get payment status
+                const response = await fetch(`/api/payment-status?sessionId=${sessionId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch payment details');
+                }
+                
+                const data = await response.json();
+                
+                // Populate additional details if available
+                const detailsDiv = document.getElementById('additional-details');
+                if (data.customer && data.customer.email) {
+                    const emailElem = document.createElement('p');
+                    emailElem.innerHTML = `Customer: <strong>${data.customer.email}</strong>`;
+                    detailsDiv.appendChild(emailElem);
+                }
+                
+                if (data.amount) {
+                    const amountElem = document.createElement('p');
+                    amountElem.innerHTML = `Amount: <strong>${data.amount.toFixed(2)} ${data.currency.toUpperCase()}</strong>`;
+                    detailsDiv.appendChild(amountElem);
+                }
+                
+                if (data.metadata && Object.keys(data.metadata).length > 0) {
+                    const metadataElem = document.createElement('p');
+                    metadataElem.innerHTML = `Order: <strong>${data.metadata.customer_name || 'Unknown'}</strong>`;
+                    detailsDiv.appendChild(metadataElem);
+                }
+                
+                console.log('Payment details loaded:', data);
+            } catch (error) {
+                console.error('Error loading payment details:', error);
+                const errorElem = document.createElement('p');
+                errorElem.innerHTML = `<span style="color: #f87171;">Error loading details: ${error.message}</span>`;
+                document.getElementById('additional-details').appendChild(errorElem);
+            }
+        }
+        
+        // Load payment details when the page loads
+        window.addEventListener('DOMContentLoaded', loadPaymentDetails);
+    </script>
+</body>
+</html>

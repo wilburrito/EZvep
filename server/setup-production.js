@@ -11,9 +11,9 @@ console.log('1. Create a .env.production file in the server directory');
 console.log('2. Add the following variables with your production keys:');
 console.log(`
 # Stripe Configuration (PRODUCTION)
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_PUBLISHABLE_KEY=pk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_SECRET_KEY=your_production_secret_key
+STRIPE_PUBLISHABLE_KEY=your_production_publishable_key
+STRIPE_WEBHOOK_SECRET=your_production_webhook_secret
 USE_FALLBACK_MODE=false
 
 # Server Configuration
@@ -21,8 +21,10 @@ PORT=3001
 NODE_ENV=production
 
 # Other Variables (copy from development)
-GOOGLE_PLACES_API_KEY=...
-GOOGLE_PLACE_ID=...
+GOOGLE_PLACES_API_KEY=your_google_api_key
+GOOGLE_PLACE_ID=your_google_place_id
+
+# IMPORTANT: Never commit this file with real values
 `);
 
 console.log('\nPRODUCTION CHECKLIST:');

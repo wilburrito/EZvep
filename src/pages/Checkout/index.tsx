@@ -107,11 +107,17 @@ const Checkout = () => {
       // Save customer info to session storage for persistence across redirects
       sessionStorage.setItem('customer_info', JSON.stringify(values));
       
+      // Get base URL for API endpoints
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const baseUrl = isLocalhost ? '' : 'https://www.ezvep.com';
+      
       // Try primary API endpoint first, then fallback
       const apiEndpoints = [
-        '/direct-api/create-checkout-session',
-        '/api/create-checkout-session'
+        `${baseUrl}/direct-api/create-checkout-session`,
+        `${baseUrl}/api/create-checkout-session`
       ];
+      
+      console.log('Attempting payment with endpoints:', apiEndpoints);
       
       let response = null;
       let lastError = null;
@@ -141,6 +147,7 @@ const Checkout = () => {
             const errorData = await resp.json().catch(() => ({}));
             lastError = errorData.error || `HTTP error: ${resp.status}`;
             console.error(`API call to ${apiUrl} failed:`, lastError);
+            errorMessage = `Payment service connection failed (${resp.status}). Please try again or contact support.`;
             continue; // Try next endpoint
           }
           
@@ -149,6 +156,11 @@ const Checkout = () => {
         } catch (err) {
           lastError = err instanceof Error ? err.message : 'Unknown error';
           console.error(`API call to ${apiUrl} failed:`, lastError);
+          
+          // Handle network-level errors (like connection refused)
+          if (lastError.includes('Failed to fetch') || lastError.includes('NetworkError') || lastError.includes('REFUSED')) {
+            errorMessage = `Unable to connect to payment service. Please check your internet connection and try again.`;
+          }
         }
       }
       

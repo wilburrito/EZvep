@@ -107,13 +107,14 @@ const Checkout = () => {
       // Save customer info to session storage for persistence across redirects
       sessionStorage.setItem('customer_info', JSON.stringify(values));
       
-      // Always use the direct-api endpoint which has proper CORS headers configured
-      // This endpoint is specifically configured to handle cross-origin requests
+      // Try multiple API endpoints with different configurations
       const apiEndpoints = [
+        'https://www.ezvep.com/api/create-checkout-session',
+        '/api/create-checkout-session', // Try relative URL
         'https://www.ezvep.com/direct-api/create-checkout-session'
       ];
       
-      console.log('Attempting payment with endpoints:', apiEndpoints);
+      console.log('Will attempt payment with multiple endpoints:', apiEndpoints);
       
       let response = null;
       let lastError = null;
@@ -126,7 +127,10 @@ const Checkout = () => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Accept': 'application/json',
             },
+            mode: 'cors', // Explicitly request CORS mode
+            credentials: 'omit', // Don't send cookies for cross-origin requests
             body: JSON.stringify({
               customer_email: values.email,
               customer_name: values.name,
@@ -140,26 +144,14 @@ const Checkout = () => {
           });
           
           if (!resp.ok) {
-            try {
-              const errorData = await resp.json();
-              lastError = errorData.error || `HTTP error: ${resp.status}`;
-            } catch (e) {
-              // If JSON parsing fails, use status text
-              lastError = `HTTP error: ${resp.status} ${resp.statusText}`;
-            }
+            const errorData = await resp.json().catch(() => ({}));
+            lastError = errorData.error || `HTTP error: ${resp.status}`;
             console.error(`API call to ${apiUrl} failed:`, lastError);
-            errorMessage = `Payment service error (${resp.status}). Please try again or contact support.`;
+            errorMessage = `Payment service connection failed (${resp.status}). Please try again or contact support.`;
             continue; // Try next endpoint
           }
           
-          try {
-            response = await resp.json();
-          } catch (e) {
-            lastError = 'Invalid response format from server';
-            console.error(`API call to ${apiUrl} failed with parsing error:`, e);
-            errorMessage = 'Unable to process the server response. Please try again.';
-            continue; // Try next endpoint
-          }
+          response = await resp.json();
           break; // Success, exit loop
         } catch (err) {
           lastError = err instanceof Error ? err.message : 'Unknown error';

@@ -4,7 +4,6 @@ import { useHistory } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
 import { Form, Input, Button, Steps, Result, message, Spin, Row, Col } from 'antd';
 import styled from 'styled-components';
-import { SvgIcon } from '../../common/SvgIcon';
 import Container from '../../common/Container';
 import { Fade } from 'react-awesome-reveal';
 
@@ -170,9 +169,7 @@ const Checkout = () => {
     }
   };
 
-  const handlePrevStep = () => {
-    setCurrentStep(currentStep - 1);
-  };
+  // Navigation happens via form submission or URL parameters
 
   const steps = [
     {

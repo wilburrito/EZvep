@@ -38,14 +38,7 @@ console.log('- PORT:', process.env.PORT || '3001 (default)');
 // Initialize express app
 const app = express();
 
-// Enhanced CORS configuration with better debugging
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'https://ezvep.com',
-  'https://www.ezvep.com',
-  // Add any additional domains here
-];
+// Production-ready configuration
 
 // Debug incoming requests
 app.use((req, res, next) => {
@@ -89,32 +82,25 @@ app.post('/direct-api/create-checkout-session', express.json(), async (req, res)
   }
 });
 
-// Enable CORS for all routes with enhanced configuration
+// Enable CORS for all routes with most permissive configuration for production compatibility
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, etc.)
-    if (!origin) {
-      console.log('Allowing request with no origin');
-      return callback(null, true);
-    }
-    
-    console.log(`Checking if origin ${origin} is allowed`);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      console.log(`Origin ${origin} not in allowed list:`, allowedOrigins);
-      // For development, allow all origins but log a warning
-      // For production, you might want to be strict
-      return callback(null, true); // Allow all origins in development
-    }
-    console.log(`Origin ${origin} is allowed`);
-    return callback(null, true);
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  origin: '*', // Allow all origins in production
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true
+  credentials: true // Allow credentials
 }));
 
-// Add OPTIONS handling for preflight requests
-app.options('*', cors());
+// Parse JSON body for most requests
+app.use(express.json());
+
+// Explicit OPTIONS handler for all API endpoints to ensure CORS preflight works
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.status(204).end();
+});
 
 // IMPORTANT: Raw body parser for Stripe webhooks must come BEFORE JSON parsers
 // We need to set up webhook routes first to ensure they receive the raw body

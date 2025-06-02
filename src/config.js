@@ -11,9 +11,10 @@ const isProduction =
   window.location.hostname !== 'localhost' && 
   window.location.hostname !== '127.0.0.1';
 
-// API URLs - ensure local uses HTTP and production uses HTTPS
+// API URLs - ensure local uses HTTP and for production we use relative URLs
 const LOCAL_API_URL = 'http://localhost:3001'; // Always use HTTP for localhost
-const PRODUCTION_API_URL = 'https://www.ezvep.com'; // Use HTTPS for production
+// For production, use relative URLs to avoid cross-origin issues
+const PRODUCTION_API_URL = ''; // Empty string means use relative URLs
 
 // Export environment-specific configuration
 const config = {

@@ -26,7 +26,8 @@ const StripeCheckout = ({
         // Server expects amount directly, not line_items
         amount: amount,
         currency: 'sgd', // Singapore dollars
-        // Backend expects these URL parameters with this naming
+        // Use FULL URLs for success and cancel to ensure they work in production
+        // This is critical for Stripe to redirect back properly
         successUrl: window.location.origin + '/payment-success?session_id={CHECKOUT_SESSION_ID}',
         cancelUrl: window.location.origin + '/payment-cancel',
         // Customer information
@@ -42,42 +43,85 @@ const StripeCheckout = ({
         }
       };
       
-      // Select the appropriate API endpoint based on environment
-      let apiUrl;
+      // Determine if we're in production or development
       const isProd = typeof window !== 'undefined' && 
         window.location.hostname !== 'localhost' && 
         window.location.hostname !== '127.0.0.1';
       
+      // CRITICAL FIX: For production, we ALWAYS try multiple endpoints to maximize chances of success
+      // This makes the component more resilient to deployment configurations
+      let apiEndpoints = [];
+      
       if (isProd) {
-        // Production environment - use the configured endpoint
-        apiUrl = `${config.api.baseUrl}${config.api.endpoints.createCheckoutSession}`;
+        // Production environment - try these endpoints in order
+        apiEndpoints = [
+          // 1. Relative path from current domain (most reliable in production)
+          `/direct-api/create-checkout-session`,
+          
+          // 2. Relative legacy endpoint as fallback
+          `/api/create-checkout-session`,
+          
+          // 3. Configured path from config (may have base URL prefix)
+          config.api.endpoints.createCheckoutSession,
+          
+          // 4. As absolute path from origin
+          `${window.location.origin}/direct-api/create-checkout-session`
+        ];
       } else {
-        // Development environment - try direct endpoint with correct protocol
-        apiUrl = 'http://localhost:3001/direct-api/create-checkout-session';
+        // Development environment - try localhost endpoints
+        apiEndpoints = [
+          // 1. Direct localhost with HTTP protocol
+          'http://localhost:3001/direct-api/create-checkout-session',
+          
+          // 2. Direct localhost with HTTP and legacy endpoint
+          'http://localhost:3001/api/create-checkout-session',
+          
+          // 3. Try 127.0.0.1 instead of localhost
+          'http://127.0.0.1:3001/direct-api/create-checkout-session'
+        ];
       }
       
       setError('Connecting to payment service...');
       
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(paymentDetails),
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.url) {
-          setError(null);
-          window.location.href = data.url;
-        } else {
-          throw new Error(`Payment service error: ${data.error || response.statusText}`);
+      // Try each endpoint until one works
+      let success = false;
+      let lastError = null;
+      
+      for (const apiUrl of apiEndpoints) {
+        try {
+          console.log(`Attempting checkout with: ${apiUrl}`);
+          
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(paymentDetails),
+            // Important: Include credentials for same-origin requests
+            credentials: 'same-origin'
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok && data.url) {
+            // Successfully created checkout session
+            setError(null);
+            window.location.href = data.url;
+            success = true;
+            break;
+          } else {
+            lastError = new Error(`Payment service error: ${data.error || response.statusText}`);
+          }
+        } catch (err) {
+          console.error(`Error with ${apiUrl}:`, err);
+          lastError = err;
+          // Continue to the next endpoint
         }
-      } catch (err) {
-        console.error('Error creating checkout session:', err);
-        throw err;
+      }
+      
+      // If all endpoints failed, throw the last error
+      if (!success && lastError) {
+        throw lastError;
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);

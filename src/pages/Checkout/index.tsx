@@ -107,14 +107,11 @@ const Checkout = () => {
       // Save customer info to session storage for persistence across redirects
       sessionStorage.setItem('customer_info', JSON.stringify(values));
       
-      // Get base URL for API endpoints
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const baseUrl = isLocalhost ? '' : 'https://www.ezvep.com';
-      
-      // Try primary API endpoint first, then fallback
+      // Always use production URLs to avoid localhost connection issues
+      // Using absolute URLs ensures this works in all environments
       const apiEndpoints = [
-        `${baseUrl}/direct-api/create-checkout-session`,
-        `${baseUrl}/api/create-checkout-session`
+        'https://www.ezvep.com/direct-api/create-checkout-session',
+        'https://www.ezvep.com/api/create-checkout-session'
       ];
       
       console.log('Attempting payment with endpoints:', apiEndpoints);

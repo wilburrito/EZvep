@@ -61,20 +61,30 @@ const stripeHandler = require('./stripe-payment-handler');
 console.log('Registering Stripe payment routes early...');
 stripeHandler.registerStripeRoutes(app);
 
-// Register a direct checkout session endpoint for better reliability
-app.post('/direct-api/create-checkout-session', async (req, res) => {
-  console.log('Direct checkout endpoint called');
+// Add body parser for direct API endpoints
+app.use('/direct-api', express.json());
+
+// Add OPTIONS handler for the direct endpoint
+app.options('/direct-api/create-checkout-session', (req, res) => {
+  // Set CORS headers for preflight request
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.status(204).end();
+});
+
+// Direct API endpoint with explicit CORS
+app.post('/direct-api/create-checkout-session', express.json(), async (req, res) => {
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'POST');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  
   try {
-    // Add CORS headers directly
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
     const session = await stripeHandler.createCheckoutSession(req.body);
-    console.log('Direct checkout session created:', session.id);
     res.status(200).json(session);
   } catch (error) {
-    console.error('Direct checkout session error:', error.message);
+    console.error('Error creating checkout session:', error.message);
     res.status(500).json({ error: error.message });
   }
 });

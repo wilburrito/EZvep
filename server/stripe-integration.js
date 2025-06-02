@@ -51,7 +51,7 @@ function verifyMockPayment(sessionId) {
       name: 'Test Customer',
       email: 'test@example.com'
     },
-    amount: 29.99,
+    amount: 47.00,
     currency: 'SGD',
     paymentIntent: `pi_mock_${Date.now()}`
   };

@@ -11,9 +11,9 @@ const isProduction =
   window.location.hostname !== 'localhost' && 
   window.location.hostname !== '127.0.0.1';
 
-// API base URL configuration
-const LOCAL_API_URL = 'http://localhost:3001';
-const PRODUCTION_API_URL = 'https://www.ezvep.com'; // Replace with your actual backend URL
+// API URLs - ensure local uses HTTP and production uses HTTPS
+const LOCAL_API_URL = 'http://localhost:3001'; // Always use HTTP for localhost
+const PRODUCTION_API_URL = 'https://www.ezvep.com'; // Use HTTPS for production
 
 // Export environment-specific configuration
 const config = {
@@ -21,12 +21,12 @@ const config = {
   api: {
     baseUrl: isProduction ? PRODUCTION_API_URL : LOCAL_API_URL,
     endpoints: {
-      // Use the direct endpoint which has enhanced CORS support
+      // Primary endpoint for creating checkout sessions
       createCheckoutSession: '/direct-api/create-checkout-session',
-      // Legacy endpoint as fallback
+      // Legacy endpoint for backwards compatibility
       legacyCreateCheckoutSession: '/api/create-checkout-session',
-      paymentStatus: '/api/payment-status',
-      webhook: '/webhook'
+      // Endpoint for verifying payment status
+      verifyPayment: '/api/payment-status',
     }
   },
 

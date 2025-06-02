@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Stripe Checkout</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        button { background: #635BFF; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
+        .error { color: red; margin: 10px 0; padding: 10px; background: #ffeeee; border-radius: 4px; }
+        .success { color: green; margin: 10px 0; padding: 10px; background: #eeffee; border-radius: 4px; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 4px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>Emergency Stripe Checkout</h1>
+    <p>This page bypasses the React frontend and connects directly to the Stripe API.</p>
+    
+    <div>
+        <h3>Customer Information</h3>
+        <div>
+            <label for="customerEmail">Email:</label>
+            <input type="email" id="customerEmail" value="test@example.com" style="width: 300px;">
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <button id="checkoutButton">Proceed to Payment</button>
+    </div>
+    
+    <div id="status" style="margin-top: 20px;"></div>
+    
+    <script>
+        document.getElementById('checkoutButton').addEventListener('click', async () => {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '<div>Processing...</div>';
+            
+            const customerEmail = document.getElementById('customerEmail').value;
+            
+            // Payment details - using the format expected by our backend handler
+            const paymentDetails = {
+                // Server expects amount as a direct parameter, not line_items
+                amount: 47.00, // Standard price for DIY VEP Guide
+                currency: 'sgd', // Singapore dollars
+                // URLs with correct format for session ID
+                successUrl: window.location.origin + '/payment-success?session_id={CHECKOUT_SESSION_ID}',
+                cancelUrl: window.location.origin + '/payment-cancel',
+                // Customer information
+                customerEmail: customerEmail,
+                customerName: 'EZVEP Customer',
+                productName: 'DIY VEP Guide',
+                description: 'DIY VEP E-Guide with step-by-step instructions',
+                // Extra metadata
+                metadata: {
+                    product_name: 'DIY VEP Guide',
+                    product_type: 'diy_vep_guide',
+                    source: 'emergency_checkout'
+                }
+            };
+            
+            try {
+                // Try multiple API endpoints with fallbacks
+                const apiEndpoints = [
+                    '/direct-api/create-checkout-session',
+                    '/api/create-checkout-session',
+                    'http://localhost:3001/direct-api/create-checkout-session',
+                    'http://127.0.0.1:3001/direct-api/create-checkout-session'
+                ];
+                
+                let success = false;
+                let lastError = null;
+                let url = null;
+                let responseData = null;
+                
+                for (const apiUrl of apiEndpoints) {
+                    try {
+                        console.log(`Attempting connection to: ${apiUrl}`);
+                        statusDiv.innerHTML += `<div>Trying ${apiUrl}...</div>`;
+                        
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(paymentDetails),
+                        });
+                        
+                        responseData = await response.json();
+                        console.log(`Response from ${apiUrl}:`, responseData);
+                        
+                        if (response.ok && responseData.url) {
+                            url = responseData.url;
+                            success = true;
+                            console.log('Successfully created checkout session!');
+                            break;
+                        } else {
+                            lastError = `API error: ${responseData.error || response.statusText}`;
+                        }
+                    } catch (err) {
+                        console.error(`Error with ${apiUrl}:`, err);
+                        lastError = err.message;
+                        // Continue to the next endpoint
+                    }
+                }
+                
+                if (success && url) {
+                    statusDiv.innerHTML += `<div class="success">Success! Checkout session created.</div>`;
+                    statusDiv.innerHTML += `<pre>${JSON.stringify(responseData, null, 2)}</pre>`;
+                    statusDiv.innerHTML += `<button id="redirectButton">Go to Stripe Checkout</button>`;
+                    
+                    document.getElementById('redirectButton').addEventListener('click', () => {
+                        window.location.href = url;
+                    });
+                } else {
+                    statusDiv.innerHTML += `<div class="error">All connection attempts failed: ${lastError}</div>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML += `<div class="error">Error: ${error.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>

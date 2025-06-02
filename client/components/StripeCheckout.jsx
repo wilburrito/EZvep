@@ -19,51 +19,78 @@ const StripeCheckout = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleCheckout = async () => {
-    setIsLoading(true);
-    setError(null);
-    
+  const createCheckoutSession = async () => {
     try {
-      // Prepare the payment details
+      // Format payment details according to what our backend expects
       const paymentDetails = {
-        amount,
-        currency: currency.toLowerCase(),
-        productName,
-        customerName,
-        customerEmail,
-        // Optional metadata can be added here
+        // Server expects amount directly, not line_items
+        amount: amount,
+        currency: 'sgd', // Singapore dollars
+        // Backend expects these URL parameters with this naming
+        successUrl: window.location.origin + '/payment-success?session_id={CHECKOUT_SESSION_ID}',
+        cancelUrl: window.location.origin + '/payment-cancel',
+        // Customer information
+        customerEmail: customerEmail,
+        customerName: customerName || 'EZVEP Customer',
+        productName: productName,
+        description: 'DIY VEP E-Guide with step-by-step instructions',
+        // Additional metadata
         metadata: {
+          product_name: productName,
+          product_type: 'diy_vep_guide',
           source: 'react_component'
         }
       };
       
-      // Call our backend API to create a Stripe checkout session
-      const apiUrl = `${config.api.baseUrl}${config.api.endpoints.createCheckoutSession}`;
-      console.log('Making API request to:', apiUrl);
+      // Select the appropriate API endpoint based on environment
+      let apiUrl;
+      const isProd = typeof window !== 'undefined' && 
+        window.location.hostname !== 'localhost' && 
+        window.location.hostname !== '127.0.0.1';
       
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(paymentDetails),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create checkout session');
+      if (isProd) {
+        // Production environment - use the configured endpoint
+        apiUrl = `${config.api.baseUrl}${config.api.endpoints.createCheckoutSession}`;
+      } else {
+        // Development environment - try direct endpoint with correct protocol
+        apiUrl = 'http://localhost:3001/direct-api/create-checkout-session';
       }
       
-      const { url } = await response.json();
+      setError('Connecting to payment service...');
       
-      // Redirect to Stripe Checkout
-      window.location.href = url;
-    } catch (err) {
-      console.error('Error creating checkout session:', err);
-      setError(err.message || 'An error occurred while creating checkout session');
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(paymentDetails),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.url) {
+          setError(null);
+          window.location.href = data.url;
+        } else {
+          throw new Error(`Payment service error: ${data.error || response.statusText}`);
+        }
+      } catch (err) {
+        console.error('Error creating checkout session:', err);
+        throw err;
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      setError(`Payment Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCheckout = async () => {
+    setIsLoading(true);
+    setError(null);
+    await createCheckoutSession();
   };
 
   return (

@@ -81,4 +81,5 @@ const Contact = ({ title, content, id, t }: ContactProps) => {
   );
 };
 
+export const PureContact = Contact;
 export default withTranslation()(Contact);

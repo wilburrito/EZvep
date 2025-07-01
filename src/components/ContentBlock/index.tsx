@@ -132,4 +132,5 @@ const ContentBlock = ({
   );
 };
 
+export const PureContentBlock = ContentBlock;
 export default withTranslation()(ContentBlock);

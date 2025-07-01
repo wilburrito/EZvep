@@ -40,4 +40,5 @@ const MiddleBlock = ({ title, content, button, t }: MiddleBlockProps) => {
   );
 };
 
+export const PureMiddleBlock = MiddleBlock;
 export default withTranslation()(MiddleBlock);

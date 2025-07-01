@@ -62,7 +62,7 @@ const Home = () => {
         content={PricingContent.text}
         id="pricing"
         t={t}
-        icon={undefined}
+        icon=""
       />
       <MiddleBlock
         title={MiddleBlockContent.title}

@@ -48,16 +48,15 @@ const Home = () => {
         id="intro"
         imageDescription="Picture of our customer with their VEP RFID on their headlights"
       />
-      <GoogleReviews
+      {/* <GoogleReviews
         title={GoogleReviewsContent.title}
         content={GoogleReviewsContent.text}
         id="reviews"
-      />
+      /> */}
       <ContentBlock
         direction="right"
         title={PricingContent.title}
         content={PricingContent.text}
-        icon="PRICING.svg"
         id="pricing"
       />
       <MiddleBlock

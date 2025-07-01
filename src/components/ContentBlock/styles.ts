@@ -66,3 +66,22 @@ export const ButtonWrapper = styled("div")`
     margin-left: 20px;
   }
 `;
+
+export const CenteredContentSection = styled(ContentSection)`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 6rem 0 6rem;
+
+  .ant-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  @media only screen and (max-width: 1024px) {
+    flex-direction: column;
+    padding: 3rem 0 3rem;
+  }
+`;

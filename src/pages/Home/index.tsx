@@ -13,7 +13,6 @@ const Container = lazy(() => import("../../common/Container"));
 const ScrollToTop = lazy(() => import("../../common/ScrollToTop"));
 const ContentBlock = lazy(() => import("../../components/ContentBlock"));
 const GoogleReviews = lazy(() => import("../../components/GoogleReviews"));
-const PricingTable = lazy(() => import("../../components/PricingTable"));
 
 const Home = () => {
 
@@ -49,12 +48,13 @@ const Home = () => {
         id="intro"
         imageDescription="Picture of our customer with their VEP RFID on their headlights"
       />
-      <GoogleReviews
+      {/* <GoogleReviews
         title={GoogleReviewsContent.title}
         content={GoogleReviewsContent.text}
         id="reviews"
-      />
-      <PricingTable
+      /> */}
+      <ContentBlock
+        direction="right"
         title={PricingContent.title}
         content={PricingContent.text}
         id="pricing"

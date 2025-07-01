@@ -10,12 +10,14 @@ import ScrollToTop from "../../common/ScrollToTop";
 import { PureContentBlock } from "../../components/ContentBlock";
 import { PureMiddleBlock } from "../../components/MiddleBlock";
 import { PureContact } from "../../components/ContactForm";
+import { useTranslation } from "react-i18next";
 // const GoogleReviews = lazy(() => import("../../components/GoogleReviews"));
 
 const MiddleBlock = PureMiddleBlock;
 const Contact = PureContact;
 
 const Home = () => {
+  const { t } = useTranslation();
 
   useEffect(() => {
     const gtagScript = document.createElement("script");
@@ -35,9 +37,8 @@ const Home = () => {
 
   return (
     <>
-
     <Helmet>
-      <meta name="google-site-verification" content="Gl2Rv_aKOdbwSfnI58EceXAOkBaWfQG3GetZh_T6wH8" />
+      {/* <meta name="google-site-verification" content="Gl2Rv_aKOdbwSfnI58EceXAOkBaWfQG3GetZh_T6wH8" /> */}
     </Helmet>
     <Container>
       <ScrollToTop />
@@ -48,6 +49,7 @@ const Home = () => {
         icon="CAR.svg"
         id="intro"
         imageDescription="Picture of our customer with their VEP RFID on their headlights"
+        t={t}
       />
       {/* <GoogleReviews
         title={GoogleReviewsContent.title}
@@ -59,11 +61,13 @@ const Home = () => {
         title={PricingContent.title}
         content={PricingContent.text}
         id="pricing"
+        t={t}
       />
       <MiddleBlock
         title={MiddleBlockContent.title}
         content={MiddleBlockContent.text}
         button={MiddleBlockContent.button}
+        t={t}
       />
       <PureContentBlock
         direction="left"
@@ -72,11 +76,13 @@ const Home = () => {
         section={AboutContent.section}
         icon="CHECK_MARK.svg"
         id="about"
+        t={t}
       />
       <Contact
         title={ContactContent.title}
         content={ContactContent.text}
         id="contact"
+        t={t}
       />
     </Container>
     </>

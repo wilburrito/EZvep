@@ -3,7 +3,6 @@ import { Row, Col, Rate, Spin, Button, Carousel } from "antd";
 import { withTranslation } from "react-i18next";
 import { GoogleReviewsProps } from "./types";
 import './styles.css';
-import './carousel-fix.css';
 import {
   GoogleReviewsContainer,
   ReviewsWrapper,
@@ -50,18 +49,13 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
     }
   };
 
-  // Add a state for error tracking
-  const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchReviews = async () => {
       setLoading(true);
-      setError(null); // Reset error state
       
       try {
         // Call our backend API to fetch Google reviews
         const placeId = process.env.REACT_APP_GOOGLE_PLACE_ID || "ChIJ88pp-7EZtE0RttmdZtbpdMc";
-        console.log('Fetching reviews with Place ID:', placeId);
         
         // Use Google Places API to fetch real reviews
         const useManualReviews = false;
@@ -73,7 +67,6 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
         
         try {
           // Make the API call to our backend with CORS headers
-          console.log(`Calling API: ${apiBaseUrl}?placeId=${placeId}`);
           const response = await fetch(`${apiBaseUrl}?placeId=${placeId}`, {
             method: 'GET',
             headers: {
@@ -83,16 +76,10 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
           });
           
           if (!response.ok) {
-            const errorMessage = `API response error: ${response.status} ${response.statusText}`;
-            console.error(errorMessage);
-            setError(errorMessage);
-            throw new Error(errorMessage);
+            throw new Error(`API response error: ${response.status} ${response.statusText}`);
           }
           
-          console.log('API response received');
-          
           const data = await response.json();
-          console.log(`Received ${data.reviews?.length || 0} reviews from API`);
           
           if (data.reviews && data.reviews.length > 0) {
             // Deduplicate reviews by author name and ensure exactly one unique review per author
@@ -115,16 +102,12 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
             // Sort by time (newest first)
             uniqueAuthorReviews.sort((a, b) => b.time - a.time);
             
-            // Display all unique reviews
-            setReviews(uniqueAuthorReviews);
+            // Take only up to 6 reviews to avoid overcrowding
+            setReviews(uniqueAuthorReviews.slice(0, 6));
           } else {
             setReviews([]);
           }
-        } catch (error: any) {
-          // Log error details
-          console.error('Error fetching reviews:', error);
-          setError(error.message || 'Error fetching reviews');
-          
+        } catch (error) {
           // Use fallback data if API fails
           setReviews([
             {
@@ -150,10 +133,8 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
             }
           ]);
         }
-      } catch (error: any) {
-        // General error handling
-        console.error('General error:', error);
-        setError(error.message || 'Unexpected error occurred');
+      } catch (error) {
+        // Error handling
       } finally {
         setLoading(false);
       }
@@ -182,12 +163,6 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
           {loading ? (
             <div style={{ textAlign: "center", padding: "40px 0" }}>
               <Spin size="large" />
-            </div>
-          ) : error ? (
-            <div style={{ textAlign: "center", padding: "40px 0", color: "#f5222d" }}>
-              <h3>Error Loading Reviews</h3>
-              <p>{error}</p>
-              <p>Using fallback reviews instead</p>
             </div>
           ) : (
             <ReviewsWrapper>
@@ -223,15 +198,12 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
                 <Carousel 
                   ref={carouselRef}
                   dots={false}
-                  arrows={false}
                   slidesToShow={3}
                   autoplay={false}
-                  infinite={false}
+                  infinite={true}
                   slidesToScroll={1}
-                  draggable
-                  swipeToSlide
+                  centerPadding="0px"
                   className="full-width-carousel"
-                  initialSlide={0}
                   responsive={[
                     {
                       breakpoint: 1400,
@@ -250,8 +222,8 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
                   ]}
                 >
                   {reviews.map((review, index) => (
-                    <div key={index} className="carousel-item-container">
-                    <ReviewCard className="review-card">
+                    <div key={index}>
+                      <ReviewCard className="review-card">
                         <ReviewAuthor>
                           {review.profile_photo_url ? (
                             <img 

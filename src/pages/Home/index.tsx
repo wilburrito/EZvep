@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy } from "react";
 import { Helmet } from "react-helmet";
 import IntroContent from "../../content/IntroContent.json";
 import MiddleBlockContent from "../../content/MiddleBlockContent.json";
@@ -11,7 +11,8 @@ import { PureContentBlock } from "../../components/ContentBlock";
 import { PureMiddleBlock } from "../../components/MiddleBlock";
 import { PureContact } from "../../components/ContactForm";
 import { useTranslation } from "react-i18next";
-// const GoogleReviews = lazy(() => import("../../components/GoogleReviews"));
+import GoogleReviewsContent from "../../content/GoogleReviewsContent.json";
+const GoogleReviews = lazy(() => import("../../components/GoogleReviews"));
 
 const MiddleBlock = PureMiddleBlock;
 const Contact = PureContact;
@@ -51,11 +52,11 @@ const Home = () => {
         imageDescription="Picture of our customer with their VEP RFID on their headlights"
         t={t}
       />
-      {/* <GoogleReviews
+      <GoogleReviews
         title={GoogleReviewsContent.title}
         content={GoogleReviewsContent.text}
         id="reviews"
-      /> */}
+      />
       <PureContentBlock
         direction="right"
         title={PricingContent.title}

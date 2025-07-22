@@ -7,7 +7,7 @@ interface SectionProps {
 }
 
 export const ReviewsTitle = styled.h1`
-  color: #0057b8;
+  color: #18216d;
   text-align: center;
   font-size: 2.5rem;
   font-weight: 700;
@@ -45,7 +45,7 @@ export const ReviewsWrapper = styled.div`
   
   .carousel-container {
     position: relative;
-    padding: 0;
+    padding: 0 0 20px 0;
     margin: 0 auto;
     max-width: 100%;
     width: 100%;
@@ -94,18 +94,17 @@ export const ReviewCard = styled.div`
   background: #ffffff;
   border-radius: 10px;
   box-shadow: 0 3px 15px rgba(0, 0, 0, 0.06);
-  padding: 18px 15px;
-  margin: 0 2px;
+  padding: 20px 15px 20px 15px;
+  margin: 0 5px 10px 5px;
   height: 100%;
-  min-height: 350px;
+  min-height: 300px;
   display: flex;
   flex-direction: column;
   text-align: left;
   position: relative;
-  overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: 1px solid #f0f0f0;
-  width: calc(100% - 4px);
+  width: calc(100% - 10px);
   
   &:hover {
     transform: translateY(-5px);
@@ -153,6 +152,8 @@ export const ReviewDate = styled.p`
   margin: 0.5rem 0 0;
   font-size: 0.85rem;
   color: #777777;
+  margin-top: auto;
+  padding-top: 0.5rem;
 `;
 
 export const ReviewImageContainer = styled.div`

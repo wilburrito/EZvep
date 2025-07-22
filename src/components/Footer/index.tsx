@@ -158,8 +158,12 @@ const Footer = ({ t }: { t: TFunction }) => {
                 src="whatsapp.svg"
               />
               <SocialLink
-                href="https://www.instagram.com/ezvep.sg/"
+                href="https://www.instagram.com/ezvepsg/"
                 src="instagram.svg"
+              />
+              <SocialLink
+                href="https://www.tiktok.com/@ezvepsg"
+                src="tiktok.svg"
               />
               {/* <SocialLink
                 href="https://www.linkedin.com/in/lasha-kakabadze/"

@@ -85,10 +85,22 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
             // Deduplicate reviews by author name and ensure exactly one unique review per author
             const processedData = Array.isArray(data.reviews) ? data.reviews : [];
             
+            // Filter out low-rated reviews (1 and 2 stars)
+            const filteredReviews = processedData.filter((review: GoogleReview) => {
+              return review.rating >= 3; // Only show reviews with 3+ stars
+            });
+            
+            // Log filtering results for monitoring
+            const lowRatedReviews = processedData.filter((review: GoogleReview) => review.rating < 3);
+            if (lowRatedReviews.length > 0) {
+              console.log(`Filtered out ${lowRatedReviews.length} low-rated reviews:`, lowRatedReviews.map((r: GoogleReview) => ({ author: r.author_name, rating: r.rating })));
+            }
+            console.log(`Showing ${filteredReviews.length} reviews with 3+ stars out of ${processedData.length} total reviews`);
+            
             // First pass - get only unique authors with their most recent review
             const authorMap = new Map<string, GoogleReview>();
             
-            processedData.forEach((review: GoogleReview) => {
+            filteredReviews.forEach((review: GoogleReview) => {
               const authorName = review.author_name?.trim() || 'Anonymous';
               // Only keep the review if we haven't seen this author or if it's newer than the one we have
               if (!authorMap.has(authorName) || review.time > authorMap.get(authorName)!.time) {
@@ -151,7 +163,7 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
             <Rate disabled defaultValue={5} style={{ fontSize: '28px', color: '#FFC107' }} />
           </div>
-          <ReviewsCount>Over 50+ Positive Reviews</ReviewsCount>
+          <ReviewsCount>Over 90+ Positive Reviews</ReviewsCount>
           <div style={{ textAlign: 'center', marginBottom: '30px' }}>
             <img 
               src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png" 

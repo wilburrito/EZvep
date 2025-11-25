@@ -85,3 +85,14 @@ export const CenteredContentSection = styled(ContentSection)`
     padding: 3rem 0 3rem;
   }
 `;
+
+export const PricingButtonWrapper = styled("div")`
+  margin-top: 30px;
+  display: inline-block;
+
+  button {
+    padding: 10px 25px !important;
+    font-size: 1rem !important;
+    max-width: none !important;
+  }
+`;

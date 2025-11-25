@@ -163,7 +163,7 @@ const GoogleReviews = ({ title, content, id, t }: GoogleReviewsProps) => {
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
             <Rate disabled defaultValue={5} style={{ fontSize: '28px', color: '#FFC107' }} />
           </div>
-          <ReviewsCount>Over 90+ Positive Reviews</ReviewsCount>
+          <ReviewsCount>Over 160+ Positive Reviews</ReviewsCount>
           <div style={{ textAlign: 'center', marginBottom: '30px' }}>
             <img 
               src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png" 

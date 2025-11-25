@@ -16,6 +16,7 @@ import {
   StyledRow,
   ButtonWrapper,
   ImageDescription,
+  PricingButtonWrapper,
 } from "./styles";
 
 const ContentBlock = ({
@@ -28,6 +29,7 @@ const ContentBlock = ({
   id,
   direction,
   imageDescription,
+  oldPrice = 150,
 }: ContentBlockProps) => {
   const scrollTo = (id: string) => {
     const element = document.getElementById(id) as HTMLDivElement;
@@ -36,23 +38,97 @@ const ContentBlock = ({
     });
   };
 
-  const SectionComponent = id === "pricing" ? CenteredContentSection : ContentSection;
+  const SectionComponent = ContentSection;
 
   return (
     <SectionComponent>
       <Fade direction={direction} triggerOnce>
         {id === "pricing" ? (
-          <Col xs={24} style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', maxWidth: 900, margin: '0 auto', gap: 40, flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <h6 style={{ fontSize: '2.5rem', margin: 0 }}>{t(title)}</h6>
-            </div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
-              <Content style={{ marginTop: 0 }}>{t(content)}</Content>
-              <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', marginTop: 30 }}>
-                <Button onClick={() => scrollTo("contact")}>{t("Contact Us!")}</Button>
-              </div>
-            </div>
-          </Col>
+          <>
+            {/* Promo Badge - Full Width */}
+            <Row>
+              <Col span={24} style={{ textAlign: "center", marginBottom: "20px" }}>
+                <div
+                  style={{
+                    background: "#ff5c5c",
+                    color: "white",
+                    padding: "6px 14px",
+                    borderRadius: "8px",
+                    fontWeight: 600,
+                    fontSize: "1.2rem",
+                    textTransform: "uppercase",
+                    display: "inline-block",
+                  }}
+                >
+                  Year-End Offer · Ends 24 Dec
+                </div>
+              </Col>
+            </Row>
+
+            {/* Two Column Layout: Title/Image on Left, Content on Right */}
+            <StyledRow
+              justify="space-between"
+              align="middle"
+              id={id}
+              direction="left"
+            >
+              {/* Left Column: Styled Title, Strikethrough Price, and Discount Icon */}
+              <Col lg={11} md={11} sm={12} xs={24}>
+                <div style={{ textAlign: "center" }}>
+                  {/* Styled Title */}
+                  <h6 style={{ fontSize: "2.5rem", marginBottom: "10px" }}>
+                    <span style={{ fontSize: "2rem", fontWeight: "bold" }}>
+                    Limited-Time: VEP at <span style={{ color: "#FF5C5C" }}>$130 Nett</span>
+                    </span>
+                  </h6>
+                  {/* Strikethrough Price */}
+                  <div style={{ marginBottom: "20px" }}>
+                    <span
+                      style={{
+                        textDecoration: "line-through",
+                        fontSize: "1.5rem",
+                        color: "#777",
+                      }}
+                    >
+                      {`(usual $${oldPrice})`}
+                    </span>
+                  </div>
+                  {/* Discount Icon as img */}
+                  <img 
+                    src="/img/svg/discount-icon.svg" 
+                    alt="Discount Offer" 
+                    style={{ width: "100%", maxWidth: "450px", height: "auto" }}
+                  />
+                </div>
+              </Col>
+
+              {/* Right Column: Content Only */}
+              <Col lg={11} md={11} sm={11} xs={24}>
+                <ContentWrapper>
+                  <Content style={{ marginTop: 0 }}>
+                    {/* Content from JSON - Larger text with highlights */}
+                    <div style={{ fontSize: "1.25rem", lineHeight: "1.6" }}>
+                      <p style={{ marginBottom: "1.5rem" }}>
+                        For a limited time only, get your VEP done for{" "}
+                        <strong style={{ color: "#FF5C5C" }}>$130 nett</strong> (usual $150) when you sign up before{" "}
+                        <strong style={{ color: "#FF5C5C" }}>24 December</strong>.{" "}
+                        <strong>Same fast processing, same dedicated support</strong> – just at a better price.
+                      </p>
+                      <p style={{ marginBottom: 0 }}>
+                        Have friends or family driving up too? Refer them or add another car and enjoy our{" "}
+                        <strong style={{ color: "#FF5C5C" }}>referral savings</strong> together.
+                      </p>
+                    </div>
+                  </Content>
+                  <PricingButtonWrapper>
+                    <Button onClick={() => scrollTo("contact")}>
+                      {t("Contact Us!")}
+                    </Button>
+                  </PricingButtonWrapper>
+                </ContentWrapper>
+              </Col>
+            </StyledRow>
+          </>
         ) : (
           <StyledRow
             justify="space-between"

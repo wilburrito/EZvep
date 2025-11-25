@@ -22,4 +22,5 @@ export interface ContentBlockProps {
   id: string;
   direction: "left" | "right";
   imageDescription?: string;
+  oldPrice?: number;
 }

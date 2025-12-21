@@ -144,12 +144,20 @@ const Footer = ({ t }: { t: TFunction }) => {
           >
             <NavLink to="/">
               <LogoContainer>
-                <SvgIcon
-                  src="EZVEPLogo.svg"
-                  aria-label="homepage"
-                  width="101px"
-                  height="101px"
-                />
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <SvgIcon
+                    src="EZVEPLogo.svg"
+                    aria-label="homepage"
+                    width="101px"
+                    height="101px"
+                  />
+                  <SvgIcon
+                    src="SeeqLogo.svg"
+                    aria-label="Seeq Logo"
+                    width="101px"
+                    height="101px"
+                  />
+                </div>
               </LogoContainer>
             </NavLink>
             <FooterContainer>

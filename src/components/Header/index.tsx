@@ -25,6 +25,17 @@ const Header = ({ t }: { t: TFunction }) => {
     setVisibility(!visible);
   };
 
+  const scrollToTop = () => {
+    // If we're not on the home page, navigate to home first
+    if (location.pathname !== '/' && location.pathname !== '/home') {
+      history.push('/');
+    }
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
   const MenuItem = () => {
     const scrollTo = (id: string) => {
       // If we're not on the home page, navigate to home first
@@ -77,8 +88,8 @@ const Header = ({ t }: { t: TFunction }) => {
     <HeaderSection>
       <Container>
         <Row justify="space-between">
-          <LogoContainer to="/" aria-label="homepage">
-            <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+          <LogoContainer to="/" aria-label="homepage" onClick={scrollToTop}>
+            <div style={{ display: "flex", alignItems: "center", gap: "15px", cursor: "pointer" }}>
               <SvgIcon src="EZVEPLogo.svg" width="150px" height="150px" />
               <SvgIcon src="SeeqLogo.svg" width="150px" height="150px" />
             </div>

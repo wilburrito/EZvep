@@ -2,6 +2,10 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 
 export const HeaderSection = styled("header")`
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: #fff;
   padding: 1rem 0.5rem;
 
   .ant-row-space-between {

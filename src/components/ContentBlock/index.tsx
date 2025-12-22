@@ -59,7 +59,7 @@ const ContentBlock = ({
                     display: "inline-block",
                   }}
                 >
-                  Year-End Offer · Ends 24 Dec
+                  Year-End Offer · Ends 24 Dec 23:59 !!
                 </div>
               </Col>
             </Row>

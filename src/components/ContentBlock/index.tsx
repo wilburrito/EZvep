@@ -28,7 +28,6 @@ const ContentBlock = ({
   id,
   direction,
   imageDescription,
-  oldPrice = 150,
 }: ContentBlockProps) => {
   const scrollTo = (id: string) => {
     const element = document.getElementById(id) as HTMLDivElement;
@@ -40,94 +39,126 @@ const ContentBlock = ({
   const SectionComponent = ContentSection;
 
   return (
-    <SectionComponent>
+    <SectionComponent style={id === "pricing" ? { padding: "4rem 0 2rem" } : undefined}>
       <Fade direction={direction} triggerOnce>
         {id === "pricing" ? (
-          <>
-            {/* Promo Badge - Full Width */}
-            <Row>
-              <Col span={24} style={{ textAlign: "center", marginBottom: "20px" }}>
+          <StyledRow
+            justify="center"
+            align="middle"
+            id={id}
+            direction="left"
+          >
+            <Col lg={24} md={24} sm={24} xs={24}>
+              <ContentWrapper style={{ textAlign: "center", maxWidth: "100%", margin: "0 auto" }}>
                 <div
                   style={{
-                    background: "#ff5c5c",
-                    color: "white",
-                    padding: "6px 14px",
-                    borderRadius: "8px",
-                    fontWeight: 600,
-                    fontSize: "1.2rem",
-                    textTransform: "uppercase",
-                    display: "inline-block",
+                    border: "1px solid #e9edff",
+                    borderRadius: "18px",
+                    background: "linear-gradient(180deg, #ffffff 0%, #f8faff 100%)",
+                    padding: "1.25rem",
+                    boxShadow: "0 10px 24px rgba(46, 24, 106, 0.08)",
+                    maxWidth: "980px",
+                    margin: "0 auto",
                   }}
                 >
-                  Year-End Offer · Ends 24 Dec 23:59 !!
+                  <Row gutter={[20, 20]} align="middle">
+                    <Col lg={14} md={14} sm={24} xs={24}>
+                      <div style={{ marginBottom: "0.6rem", color: "#4d4d4d", fontWeight: 600 }}>
+                        Service & Booking Fee
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "3.1rem",
+                          fontWeight: 900,
+                          color: "#3D63FF",
+                          lineHeight: 1,
+                          letterSpacing: "-0.02em",
+                        }}
+                      >
+                        S$130
+                      </div>
+                      <div style={{ marginTop: "0.5rem", fontWeight: 600 }}>
+                        Per vehicle · all-inclusive
+                      </div>
+                      <div
+                        style={{
+                          marginTop: "0.8rem",
+                          background: "#fff6df",
+                          borderLeft: "4px solid #f5a623",
+                          borderRadius: "8px",
+                          padding: "0.55rem 0.75rem",
+                          color: "#555",
+                          fontSize: "0.92rem",
+                        }}
+                      >
+                        *Woodlands VEP Centre tag installation is excluded (no additional charge for other branches)
+                      </div>
+                    </Col>
+                    <Col lg={10} md={10} sm={24} xs={24}>
+                      <div
+                        style={{
+                          border: "1px solid #dbe3ff",
+                          borderRadius: "14px",
+                          padding: "1rem",
+                          textAlign: "center",
+                          background: "#f3f7ff",
+                          height: "100%",
+                        }}
+                      >
+                        <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#5c6fae" }}>
+                          Typical Processing Speed
+                        </div>
+                        <div style={{ fontSize: "2.15rem", fontWeight: 900, color: "#2f59ff", marginTop: "0.2rem" }}>
+                          As fast as
+                        </div>
+                        <div style={{ fontSize: "2.35rem", fontWeight: 900, color: "#2f59ff", lineHeight: 1 }}>
+                          2 days
+                        </div>
+                        <div style={{ marginTop: "0.3rem", fontWeight: 700, color: "#5c6fae" }}>
+                          for qualified submissions
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
                 </div>
-              </Col>
-            </Row>
 
-            {/* Two Column Layout: Title/Image on Left, Content on Right */}
-            <StyledRow
-              justify="space-between"
-              align="middle"
-              id={id}
-              direction="left"
-            >
-              {/* Left Column: Styled Title, Strikethrough Price, and Discount Icon */}
-              <Col lg={11} md={11} sm={12} xs={24}>
-                <div style={{ textAlign: "center" }}>
-                  {/* Styled Title */}
-                  <h6 style={{ fontSize: "2.5rem", marginBottom: "10px" }}>
-                    <span style={{ fontSize: "2rem", fontWeight: "bold" }}>
-                    Limited-Time: VEP at <span style={{ color: "#FF5C5C" }}>$130 Nett</span>
-                    </span>
-                  </h6>
-                  {/* Strikethrough Price */}
-                  <div style={{ marginBottom: "20px" }}>
-                    <span
-                      style={{
-                        textDecoration: "line-through",
-                        fontSize: "1.5rem",
-                        color: "#777",
-                      }}
-                    >
-                      {`(usual $${oldPrice})`}
-                    </span>
+                <Content style={{ margin: "0.9rem auto 0", maxWidth: "800px" }}>{t(content)}</Content>
+
+                <div
+                  style={{
+                    margin: "0.8rem auto 0",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(260px, 1fr))",
+                    gap: "0.8rem",
+                    maxWidth: "980px",
+                  }}
+                >
+                  <div style={{ border: "1px solid #e6f6ea", borderRadius: "12px", padding: "0.85rem", background: "#f9fffb" }}>
+                    <strong>Full application handling</strong>
+                    <div>We handle submission, appointment booking, and documentation.</div>
                   </div>
-                  {/* Discount Icon as img */}
-                  <img 
-                    src="/img/svg/discount-icon.svg" 
-                    alt="Discount Offer" 
-                    style={{ width: "100%", maxWidth: "450px", height: "auto" }}
-                  />
+                  <div style={{ border: "1px solid #e8efff", borderRadius: "12px", padding: "0.85rem", background: "#f8fbff" }}>
+                    <strong>Touch 'n Go setup support</strong>
+                    <div>Guided setup so your e-wallet is ready for use.</div>
+                  </div>
+                  <div style={{ border: "1px solid #fff0dc", borderRadius: "12px", padding: "0.85rem", background: "#fffaf2" }}>
+                    <strong>Document retrieval guidance</strong>
+                    <div>Exact checklist and steps to retrieve what you need.</div>
+                  </div>
+                  <div style={{ border: "1px solid #ece8ff", borderRadius: "12px", padding: "0.85rem", background: "#faf9ff" }}>
+                    <strong>After-sales WhatsApp support</strong>
+                    <div>Ongoing help if you need follow-up assistance.</div>
+                  </div>
                 </div>
-              </Col>
 
-              {/* Right Column: Content Only */}
-              <Col lg={11} md={11} sm={11} xs={24}>
-                <ContentWrapper>
-                  <Content style={{ marginTop: 0 }}>
-                    {/* Content from JSON - Larger text with highlights */}
-                    <div style={{ fontSize: "1.25rem", lineHeight: "1.6" }}>
-                      <p style={{ marginBottom: "1.5rem" }}>
-                        For a limited time only, get your VEP done for{" "}
-                        <strong style={{ color: "#FF5C5C" }}>$130 nett</strong> (usual $150) when you sign up before{" "}
-                        <strong style={{ color: "#FF5C5C" }}>24 December</strong>.{" "}
-                        <strong>Same fast processing, same dedicated support</strong> – just at a better price.
-                      </p>
-                      <p style={{ marginBottom: 0 }}>
-                        Have friends or family driving up too? Refer them or add another car and enjoy our{" "}
-                        <strong style={{ color: "#FF5C5C" }}>referral savings</strong> together.
-                      </p>
-                    </div>
-                  </Content>
-                  <PricingButtonWrapper>
-                    <Button onClick={() => scrollTo("contact")}>
-                      {t("Contact Us!")}
-                    </Button>
-                  </PricingButtonWrapper>
-                </ContentWrapper>
-              </Col>
-            </StyledRow>
-          </>
+                <PricingButtonWrapper>
+                  <Button onClick={() => scrollTo("contact")}>
+                    {t("Contact Us!")}
+                  </Button>
+                </PricingButtonWrapper>
+              </ContentWrapper>
+            </Col>
+          </StyledRow>
         ) : (
           <StyledRow
             justify="space-between"

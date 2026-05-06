@@ -6,7 +6,7 @@ export const HeaderSection = styled("header")`
   top: 0;
   z-index: 1000;
   background-color: #fff;
-  padding: 1rem 0.5rem;
+  padding: 0.35rem 0.5rem;
 
   .ant-row-space-between {
     align-items: center;

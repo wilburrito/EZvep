@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Row, Col, Modal, Form, Input, message } from "antd";
 import { Fade } from "react-awesome-reveal";
 import { withTranslation } from "react-i18next";
-import { SvgIcon } from "../../common/SvgIcon";
 import { PricingTableProps, PlanProps } from "./types";
 import {
   PricingSection,
@@ -16,9 +15,6 @@ import {
   FeaturesList,
   Feature,
   PricingButton,
-  PromoSection,
-  PromoIcon,
-  PromoText,
   HelpText,
 } from "./styles";
 
@@ -212,16 +208,6 @@ const PricingTable = ({ title, content, id, t }: PricingTableProps) => {
               </PricingCard>
             ))}
           </PricingCardsContainer>
-
-          <PromoSection>
-            <PromoIcon>
-              <SvgIcon src="fire.svg" width="48px" height="48px" />
-            </PromoIcon>
-            <PromoText>
-              <h3>Limited Time Offer!</h3>
-              <p>Get 20% off our DIY VEP E-Guide or Done-For-You Service for the month of June!</p>
-            </PromoText>
-          </PromoSection>
 
           <HelpText>
             Need help deciding? Chat with us on WhatsApp!

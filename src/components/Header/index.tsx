@@ -38,26 +38,35 @@ const Header = ({ t }: { t: TFunction }) => {
 
   const MenuItem = () => {
     const scrollTo = (id: string) => {
+      const scrollToSection = () => {
+        const element = document.getElementById(id);
+        if (!element) return false;
+
+        // Offset for sticky header so section title is not hidden.
+        const headerOffset = 72;
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = Math.max(elementPosition - headerOffset, 0);
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+        return true;
+      };
+
       // If we're not on the home page, navigate to home first
       if (location.pathname !== '/' && location.pathname !== '/home') {
         history.push('/');
-        // We'll need to wait for the home page to load before scrolling
+        // Wait for home render, then scroll with a retry for lazy-loaded content.
         setTimeout(() => {
-          const element = document.getElementById(id);
-          if (element) {
-            element.scrollIntoView({
-              behavior: "smooth",
-            });
+          if (!scrollToSection()) {
+            setTimeout(() => {
+              scrollToSection();
+            }, 350);
           }
         }, 500);
       } else {
-        // We're on the home page, try to scroll
-        const element = document.getElementById(id);
-        if (element) {
-          element.scrollIntoView({
-            behavior: "smooth",
-          });
-        }
+        scrollToSection();
       }
       setVisibility(false);
     };
@@ -89,9 +98,12 @@ const Header = ({ t }: { t: TFunction }) => {
       <Container>
         <Row justify="space-between">
           <LogoContainer to="/" aria-label="homepage" onClick={scrollToTop}>
-            <div style={{ display: "flex", alignItems: "center", gap: "15px", cursor: "pointer" }}>
-              <SvgIcon src="EZVEPLogo.svg" width="150px" height="150px" />
-              <SvgIcon src="SeeqLogo.svg" width="150px" height="150px" />
+            <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+              <SvgIcon
+                src="EZVEP_By_Seeq_Blue_Logo_NoBG.svg"
+                width="130px"
+                height="52px"
+              />
             </div>
           </LogoContainer>
           <NotHidden>

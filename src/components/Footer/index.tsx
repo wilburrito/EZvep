@@ -8,7 +8,6 @@ import { Modal } from "antd";
 // i18n import removed as it's no longer needed
 import {
   FooterSection,
-  NavLink,
   Extra,
   LogoContainer,
   Large,

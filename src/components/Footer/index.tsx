@@ -142,18 +142,18 @@ const Footer = ({ t }: { t: TFunction }) => {
             align="middle"
             style={{ paddingTop: "3rem" }}
           >
-            <NavLink to="/">
+            <a href="https://seeq.sg" target="_blank" rel="noopener noreferrer">
               <LogoContainer>
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <SvgIcon
                     src="Seeq_Blue_Logo_NoBG.svg"
-                    aria-label="homepage"
+                    aria-label="Seeq"
                     width="220px"
                     height="78px"
                   />
                 </div>
               </LogoContainer>
-            </NavLink>
+            </a>
             <FooterContainer>
               <SocialLink
                 href="https://wa.me/message/IIHKAYSMOHYFO1"
